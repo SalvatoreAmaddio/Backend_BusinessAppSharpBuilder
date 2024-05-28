@@ -171,7 +171,7 @@ namespace Backend.Database
                         transaction.Commit();
                         if (lastID != null)
                             Model?.GetTablePK()?.SetValue(lastID);
-                        UpdateRecords();
+                        UpdateSource(crud);
                     }
                     catch (Exception ex)
                     {
@@ -248,16 +248,22 @@ namespace Backend.Database
         /// <summary>
         /// Update the <see cref="Records"/> property.
         /// </summary>
-        private void UpdateRecords()
+        private void UpdateSource(CRUD crud)
         {
             if (Records == null) return;
-            if (Model.IsNewRecord()) 
+            switch(crud)
             {
-                Records.Add(Model);
-                return;
+                case CRUD.INSERT:
+                    Records.Add(Model);
+                break;
+                case CRUD.UPDATE:
+                    int index = Records.IndexOf(Model);
+                    if (index >= 0) Records[index] = Model;
+                break;
+                case CRUD.DELETE:
+                    Records.Remove(Model);
+                break;
             }
-            int index = Records.IndexOf(Model);
-            if (index >= 0) Records[index] = Model;
         }
     }
 }
