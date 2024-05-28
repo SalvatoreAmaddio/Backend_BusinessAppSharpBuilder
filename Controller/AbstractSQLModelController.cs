@@ -7,7 +7,7 @@ namespace Backend.Controller
 {
     public abstract class AbstractSQLModelController : IAbstractSQLModelController, IDisposable
     {
-        protected bool _disposed = true;
+        protected bool _disposed = false;
         protected bool _allowNewRecord = true;
         public IAbstractDatabase Db { get; protected set; } = null!;
         public abstract int DatabaseIndex { get; }
