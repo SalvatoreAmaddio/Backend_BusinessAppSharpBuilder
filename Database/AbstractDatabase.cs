@@ -14,12 +14,12 @@ namespace Backend.Database
         public ISQLModel Model { get; set; } = Model;
 
         public Type ModelType => Model.GetType();
-        public MasterSource Records { get; protected set; } = [];
+        public MasterSource MasterSource { get; protected set; } = [];
 
         public void ReplaceRecords(IEnumerable<ISQLModel> newRecords) 
         {
-            Records.Clear();
-            Records.AddRange(newRecords);
+            MasterSource.Clear();
+            MasterSource.AddRange(newRecords);
         }
 
         public abstract string ConnectionString();
@@ -171,7 +171,7 @@ namespace Backend.Database
                         transaction.Commit();
                         if (lastID != null)
                             Model?.GetTablePK()?.SetValue(lastID);
-                        UpdateSource(crud);
+                        UpdateMasterSource(crud);
                     }
                     catch (Exception ex)
                     {
@@ -246,22 +246,22 @@ namespace Backend.Database
         protected abstract string LastIDQry();
 
         /// <summary>
-        /// Update the <see cref="Records"/> property.
+        /// Update the <see cref="MasterSource"/> property.
         /// </summary>
-        private void UpdateSource(CRUD crud)
+        private void UpdateMasterSource(CRUD crud)
         {
-            if (Records == null) return;
+            if (MasterSource == null) return;
             switch(crud)
             {
                 case CRUD.INSERT:
-                    Records.Add(Model);
+                    MasterSource.Add(Model);
                 break;
                 case CRUD.UPDATE:
-                    int index = Records.IndexOf(Model);
-                    if (index >= 0) Records[index] = Model;
+                    int index = MasterSource.IndexOf(Model);
+                    if (index >= 0) MasterSource[index] = Model;
                 break;
                 case CRUD.DELETE:
-                    Records.Remove(Model);
+                    MasterSource.Remove(Model);
                 break;
             }
         }

@@ -32,10 +32,10 @@ namespace Backend.Database
         /// 
         /// </summary>
         /// <value>A Recordsource object</value>
-        public MasterSource Records { get; }
+        public MasterSource MasterSource { get; }
 
         /// <summary>
-        /// Relace the Records in the <see cref="MasterSource"/>
+        /// Relace the Records in the <see cref="Source.MasterSource"/>
         /// </summary>
         /// <param name="newRecords"></param>
         public void ReplaceRecords(IEnumerable<ISQLModel> newRecords);

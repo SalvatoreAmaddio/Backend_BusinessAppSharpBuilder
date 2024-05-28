@@ -139,7 +139,7 @@ namespace Backend.Controller
                 else GoPrevious(); //if we still have records move back.
             }
             else
-                Db?.Records?.NotifyChildren(CRUD.DELETE, Db.Model); //notify children sources that the master source has changed.
+                Db?.MasterSource?.NotifyChildren(CRUD.DELETE, Db.Model); //notify children sources that the master source has changed.
         }
 
         public virtual bool AlterRecord(string? sql = null, List<QueryParameter>? parameters = null)
@@ -149,7 +149,7 @@ namespace Backend.Controller
             Db.Model = CurrentModel;
             CRUD crud = (!Db.Model.IsNewRecord()) ? CRUD.UPDATE : CRUD.INSERT;
             Db.Crud(crud, sql, parameters);
-            Db.Records?.NotifyChildren(crud, Db.Model);
+            Db.MasterSource?.NotifyChildren(crud, Db.Model);
             GoAt(CurrentModel);
             return true;
         }

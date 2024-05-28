@@ -32,15 +32,15 @@ namespace Backend.Source
         }
 
         /// <summary>
-        /// It instantiates a RecordSource object filled with the given <see cref="IAbstractDatabase.Records"/> IEnumerable.
-        /// This constructor will consider this RecordSource object as a child of the <see cref="IAbstractDatabase.Records"/>
+        /// It instantiates a RecordSource object filled with the given <see cref="IAbstractDatabase.MasterSource"/> IEnumerable.
+        /// This constructor will consider this RecordSource object as a child of the <see cref="IAbstractDatabase.MasterSource"/>
         /// </summary>
         /// <param name="db">An instance of <see cref="IAbstractDatabase"/></param>
-        public RecordSource(IAbstractDatabase db) : this(db.Records) => db.Records.AddChild(this);
+        public RecordSource(IAbstractDatabase db) : this(db.MasterSource) => db.MasterSource.AddChild(this);
 
         /// <summary>
-        /// It instantiates a RecordSource object filled with the given <see cref="IAbstractDatabase.Records"/> IEnumerable.
-        /// This constructor will consider this RecordSource object as a child of the <see cref="IAbstractDatabase.Records"/>
+        /// It instantiates a RecordSource object filled with the given <see cref="IAbstractDatabase.MasterSource"/> IEnumerable.
+        /// This constructor will consider this RecordSource object as a child of the <see cref="IAbstractDatabase.MasterSource"/>
         /// </summary>
         /// <param name="db">An instance of <see cref="IAbstractDatabase"/></param>
         /// <param name="controller">An instance of <see cref="IAbstractSQLModelController"/></param>

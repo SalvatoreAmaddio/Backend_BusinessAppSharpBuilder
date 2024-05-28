@@ -72,7 +72,7 @@ namespace Backend.Office
                     {
                         object? value;
                         if (!use_pk_for_fk)
-                            value = DatabaseManager.Find(fk.ClassName)?.Records.FirstOrDefault(s => s.Equals(fk?.GetValue()));
+                            value = DatabaseManager.Find(fk.ClassName)?.MasterSource.FirstOrDefault(s => s.Equals(fk?.GetValue()));
                         else
                             value = fk.PK.GetValue();
 

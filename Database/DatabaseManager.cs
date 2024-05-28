@@ -30,7 +30,7 @@ namespace Backend.Database
         /// <summary>
         /// For each database, it calls concurrently, the <see cref="IAbstractDatabase.RetrieveAsync(string?, List{QueryParameter}?)"/>.
         /// <para/>
-        /// Then, it awaits for all tasks to complete and sets for each Database their <see cref="IAbstractDatabase.Records"/> property. 
+        /// Then, it awaits for all tasks to complete and sets for each Database their <see cref="IAbstractDatabase.MasterSource"/> property. 
         /// You can access the Database by calling <see cref="Do"/>
         /// <para/>
         /// For Example:
