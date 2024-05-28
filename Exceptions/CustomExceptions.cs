@@ -1,7 +1,9 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Management;
+using System.Runtime.InteropServices;
 
 namespace Backend.Exceptions
 {
+    public class RunAsAdminException() : ManagementException("You must have Administration permissions to perform this action.") { }
     public class PrinterNotFoundException(string printerName) : Exception($"No {printerName} was found in this computer.");
     public class PDFPrinterNotFoundException() : PrinterNotFoundException("PDF Printer");
     public class ExcelIndexException() : Exception("Indexes in Excel starts from 1") { };

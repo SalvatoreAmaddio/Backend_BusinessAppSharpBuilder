@@ -105,7 +105,14 @@ namespace Backend.Utils
         {
             ManagementObject? printer = GetPrinter() ?? throw new PrinterNotFoundException(printerName);
             printer["PortName"] = (useOriginal) ? originalPort : FilePath;
-            printer.Put();
+            try 
+            {
+                printer.Put();
+            }
+            catch
+            {
+                throw new RunAsAdminException();
+            }
         }
 
     }
