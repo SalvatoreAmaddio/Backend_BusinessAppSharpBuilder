@@ -1,5 +1,5 @@
-# Backend CSharpProject
+# BusinessAppSharpBuilder
 
 ## Description
-MyCSharpProject is a simple C# application that demonstrates basic functionality for processing data.
+BusinessAppSharpBuilder is a C# Framework tha runs on .NET 8. It helps speed-up the development of Business-oriented application from a back-end viewpoint.
 

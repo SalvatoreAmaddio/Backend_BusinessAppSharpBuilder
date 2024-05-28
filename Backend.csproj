@@ -16,6 +16,7 @@
     <Description>Package to deal with the back-end of DesktopBusinessAppSharpBuilder.</Description>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
     <PackageId>BackendBusinessAppSharpBuilder</PackageId>
+    <RepositoryUrl>https://github.com/SalvatoreAmaddio/Backend_BusinessAppSharpBuilder</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
