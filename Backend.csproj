@@ -17,7 +17,7 @@
     <PackageReadmeFile>readme.md</PackageReadmeFile>
     <PackageId>BackendBusinessAppSharpBuilder</PackageId>
     <RepositoryUrl>https://github.com/SalvatoreAmaddio/Backend_BusinessAppSharpBuilder</RepositoryUrl>
-	<PackageLicenseExpression>CC-BY-ND-4.0</PackageLicenseExpression>
+	<PackageLicenseExpression>EPL-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
