@@ -15,6 +15,7 @@
     <Title>Backend_BusinessAppSharpBuilder</Title>
     <Description>Package to deal with the back-end of DesktopBusinessAppSharpBuilder.</Description>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <PackageId>BackendBusinessAppSharpBuilder</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
