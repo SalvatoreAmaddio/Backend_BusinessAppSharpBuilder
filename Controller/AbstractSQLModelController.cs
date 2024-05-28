@@ -119,7 +119,12 @@ namespace Backend.Controller
         public virtual bool GoAt(ISQLModel? record)
         {
             if (!CanMove()) return false;
-            if (record == null) return false;
+            if (record == null) 
+            {
+                CurrentModel = null;
+                Records = Source.RecordPositionDisplayer();
+                return false;
+            }
             if (record.IsNewRecord()) return GoNew();
             Navigator.MoveAt(record);
             CurrentModel = Navigator.Current;
