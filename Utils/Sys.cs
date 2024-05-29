@@ -7,6 +7,10 @@ namespace Backend.Utils
 {
     public class Sys
     {
+        /// <summary>
+        /// Store a new user in the database.
+        /// </summary>
+        /// <param name="user"></param>
         public static void SaveNewUser(IUser user)
         {
             Encrypter encrypter = new(user.Password);
@@ -25,16 +29,30 @@ namespace Backend.Utils
             UpdateFirstTimeLogin((count == 0) ? true : false);
         }
 
-        
+        /// <summary>
+        /// Wrap up properties that gets the EmailUserName setting.
+        /// </summary>
         public static string EmailUserName => Properties.Backend.Default.EmailUserName;
+
+        /// <summary>
+        /// Updates the <see cref="EmailUserName"/> Setting. 
+        /// </summary>
+        /// <param name="value"></param>
         public static void UpdateEmailUserName(string value)
         {
             Properties.Backend.Default.EmailUserName = value;
             Properties.Backend.Default.Save();
         }
 
+        /// <summary>
+        /// Wrap up properties that gets the FirstTimeLogin setting.
+        /// </summary>
         public static bool FirstTimeLogin => Properties.Backend.Default.FirstTimeLogin;
 
+        /// <summary>
+        /// Updates the <see cref="FirstTimeLogin"/> Setting. 
+        /// </summary>
+        /// <param name="value"></param>
         public static void UpdateFirstTimeLogin(bool value) 
         {
             Properties.Backend.Default.FirstTimeLogin = value;
