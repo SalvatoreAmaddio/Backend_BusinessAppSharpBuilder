@@ -121,8 +121,15 @@ namespace Backend.Utils
 
             if (decrypt) 
             {
-                Encrypter encrypter = new(user.Password, SecretKeyTarget, IVTarget);
-                return encrypter.Decrypt();
+                try 
+                {
+                    Encrypter encrypter = new(user.Password, SecretKeyTarget, IVTarget);
+                    return encrypter.Decrypt();
+                }
+                catch(CredentialFailure ex) 
+                {
+                    return ex.Message;
+                }
             }
             return user.Password;
         }
@@ -141,10 +148,19 @@ namespace Backend.Utils
             if (string.IsNullOrEmpty(SecretKeyTarget) && string.IsNullOrEmpty(IVTarget)) throw new InvalidTargetsException(SecretKeyTarget, IVTarget);
             Encrypter encrypter = new(pwd);
             Password = encrypter.Encrypt();
-            List<QueryParameter> para = [new(nameof(Password), Is.Password), new(nameof(Is.UserID), Is.UserID)];
+            List<QueryParameter> para = [new(nameof(Password), Is.Password), new(nameof(UserID), Is.UserID)];
             DatabaseManager.Find("User")?.Crud(CRUD.UPDATE, $"UPDATE User SET Password=@Password WHERE UserID=@UserID", para);
             encrypter.ReplaceStoredKeyIV(SecretKeyTarget, IVTarget);
             Logout();
+        }
+
+        public static void SaveNewUser(IUser user)
+        {
+            Encrypter encrypter = new(user.Password);
+            user.Password = encrypter.Encrypt();
+            List<QueryParameter> para = [new(nameof(UserName), user.UserName), new(nameof(Password), user.Password)];
+            DatabaseManager.Find("User")?.Crud(CRUD.INSERT, $"INSERT INTO User (UserName, Password) VALUES (@UserName, @Password)", para);
+            encrypter.ReplaceStoredKeyIV(SecretKeyTarget, IVTarget);
         }
 
         /// <summary>
