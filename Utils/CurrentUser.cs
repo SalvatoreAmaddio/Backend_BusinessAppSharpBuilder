@@ -153,15 +153,6 @@ namespace Backend.Utils
             encrypter.ReplaceStoredKeyIV(SecretKeyTarget, IVTarget);
             Logout();
         }
-        
-        /// <summary>
-        /// Return the number of users in the database.
-        /// </summary>
-        /// <returns>the number of users.</returns>
-        public static long? Count() 
-        {
-            return DatabaseManager.Find("User")?.CountRecords();
-        }
 
         public static void SaveNewUser(IUser user)
         {

@@ -62,6 +62,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Properties\Backend.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Backend.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Backend.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Backend.Designer.cs</LastGenOutput>
+    </None>
     <None Update="readme.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

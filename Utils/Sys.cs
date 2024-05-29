@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using Backend.Database;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -6,6 +6,24 @@ namespace Backend.Utils
 {
     public class Sys
     {
+
+        /// <summary>
+        /// Check if the database has any user. If no user is found, updates the <see cref="FirstTimeLogin"/> Setting. 
+        /// </summary>
+        public static void OnNoUsers()
+        {
+            long? count = DatabaseManager.Find("User")?.CountRecords();
+            UpdateFirstTimeLogin((count == 0) ? true : false);
+        }
+
+        public static bool FirstTimeLogin => Properties.Backend.Default.FirstTimeLogin;
+
+        public static void UpdateFirstTimeLogin(bool value) 
+        {
+            Properties.Backend.Default.FirstTimeLogin = value;
+            Properties.Backend.Default.Save();
+        }
+
         /// <summary>
         /// Gets the Desktop's Path.
         /// </summary>
