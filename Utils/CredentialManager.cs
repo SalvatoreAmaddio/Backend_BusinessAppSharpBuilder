@@ -20,7 +20,7 @@ namespace Backend.Utils
         public static string EmailAppEncrypterIV => $"{EmailApp}_Encrypter_IV";
 
         public static readonly string UserLogin = $"{Sys.AppName}_USER_LOGIN_CREDENTIAL";
-        public static readonly string UserLoginEncrypterKey = $"{UserLogin}_Encrypter_Key";
+        public static readonly string UserLoginEncrypterSecretKey = $"{UserLogin}_Encrypter_Key";
         public static readonly string UserLoginEncrypterIV = $"{UserLogin}_Encrypter_IV";
     }
 

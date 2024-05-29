@@ -12,7 +12,7 @@ namespace Backend.Utils
         /// <summary>
         /// Sets the Secret Key Target
         /// </summary>
-        public static string SecretKeyTarget => SysCredentailTargets.UserLoginEncrypterKey;
+        public static string SecretKeyTarget => SysCredentailTargets.UserLoginEncrypterSecretKey;
 
         /// <summary>
         /// Sets the IVTarget.
@@ -152,15 +152,6 @@ namespace Backend.Utils
             DatabaseManager.Find("User")?.Crud(CRUD.UPDATE, $"UPDATE User SET Password=@Password WHERE UserID=@UserID", para);
             encrypter.ReplaceStoredKeyIV(SecretKeyTarget, IVTarget);
             Logout();
-        }
-
-        public static void SaveNewUser(IUser user)
-        {
-            Encrypter encrypter = new(user.Password);
-            user.Password = encrypter.Encrypt();
-            List<QueryParameter> para = [new(nameof(UserName), user.UserName), new(nameof(Password), user.Password)];
-            DatabaseManager.Find("User")?.Crud(CRUD.INSERT, $"INSERT INTO User (UserName, Password) VALUES (@UserName, @Password)", para);
-            encrypter.ReplaceStoredKeyIV(SecretKeyTarget, IVTarget);
         }
 
         /// <summary>

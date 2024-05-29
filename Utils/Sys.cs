@@ -1,4 +1,5 @@
 ﻿using Backend.Database;
+using Backend.Model;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -6,6 +7,14 @@ namespace Backend.Utils
 {
     public class Sys
     {
+        public static void SaveNewUser(IUser user)
+        {
+            Encrypter encrypter = new(user.Password);
+            user.Password = encrypter.Encrypt();
+            List<QueryParameter> para = [new("UserName", user.UserName), new("Password", user.Password)];
+            DatabaseManager.Find("User")?.Crud(CRUD.INSERT, $"INSERT INTO User (UserName, Password) VALUES (@UserName, @Password)", para);
+            encrypter.ReplaceStoredKeyIV(SysCredentailTargets.UserLoginEncrypterSecretKey, SysCredentailTargets.UserLoginEncrypterIV);
+        }
 
         /// <summary>
         /// Check if the database has any user. If no user is found, updates the <see cref="FirstTimeLogin"/> Setting. 
