@@ -146,7 +146,7 @@ namespace Backend.Utils
                     {
                         SysCredentailTargets.EmailApp = SenderEmail;
                         Credential? credential = CredentialManager.Get(SysCredentailTargets.EmailApp) ?? throw new CredentialFailure("Failed to retrieve credentials for authentication");
-                        Encrypter encrypter = new(credential.Password, SysCredentailTargets.EmailAppEncrypterKey, SysCredentailTargets.EmailAppEncrypterIV);
+                        Encrypter encrypter = new(credential.Password, SysCredentailTargets.EmailAppEncrypterSecretKey, SysCredentailTargets.EmailAppEncrypterIV);
                         await client.AuthenticateAsync(SenderEmail, encrypter.Decrypt());
                     }
 
@@ -205,7 +205,7 @@ namespace Backend.Utils
                         SysCredentailTargets.EmailApp = SenderEmail;
                         Credential? credential = CredentialManager.Get(SysCredentailTargets.EmailApp);
                         if (credential == null) throw new CredentialFailure("Failed to retrieve credentials for authentication");
-                        Encrypter encrypter = new(credential.Password, SysCredentailTargets.EmailAppEncrypterKey, SysCredentailTargets.EmailAppEncrypterIV);
+                        Encrypter encrypter = new(credential.Password, SysCredentailTargets.EmailAppEncrypterSecretKey, SysCredentailTargets.EmailAppEncrypterIV);
                         client.Authenticate(SenderEmail, encrypter.Decrypt());
                     }
 

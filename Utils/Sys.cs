@@ -25,6 +25,14 @@ namespace Backend.Utils
             UpdateFirstTimeLogin((count == 0) ? true : false);
         }
 
+        
+        public static string EmailUserName => Properties.Backend.Default.EmailUserName;
+        public static void UpdateEmailUserName(string value)
+        {
+            Properties.Backend.Default.EmailUserName = value;
+            Properties.Backend.Default.Save();
+        }
+
         public static bool FirstTimeLogin => Properties.Backend.Default.FirstTimeLogin;
 
         public static void UpdateFirstTimeLogin(bool value) 

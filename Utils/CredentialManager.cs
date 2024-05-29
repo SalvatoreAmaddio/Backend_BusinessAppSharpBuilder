@@ -16,7 +16,7 @@ namespace Backend.Utils
             set => _emailUserName = value ;
         }
 
-        public static string EmailAppEncrypterKey => $"{EmailApp}_Encrypter_Key";
+        public static string EmailAppEncrypterSecretKey => $"{EmailApp}_Encrypter_Key";
         public static string EmailAppEncrypterIV => $"{EmailApp}_Encrypter_IV";
 
         public static readonly string UserLogin = $"{Sys.AppName}_USER_LOGIN_CREDENTIAL";
