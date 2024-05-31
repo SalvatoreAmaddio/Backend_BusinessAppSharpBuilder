@@ -25,7 +25,7 @@ namespace Backend.Utils
         /// </summary>
         public static void OnNoUsers()
         {
-            UpdateFirstTimeLogin((count == 0) ? true : false);
+            UpdateFirstTimeLogin((DatabaseManager.Find("User")?.CountRecords() == 0) ? true : false);
         }
 
         /// <summary>
