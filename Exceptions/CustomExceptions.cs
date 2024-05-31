@@ -8,9 +8,9 @@ namespace Backend.Exceptions
     public class PDFPrinterNotFoundException() : PrinterNotFoundException("PDF Printer");
     public class ExcelIndexException() : Exception("Indexes in Excel starts from 1") { };
     public class WorkbookException(string message) : COMException(message) { }
-    public class MissingExcelException() : Exception("Excel is not installed.") { }
-    public class NoModelException() : Exception("No Model is set") { }
-    public class NoNavigatorException() : Exception("No Navigator is set") { }
+    public class MissingExcelException() : NullReferenceException("Excel is not installed.") { }
+    public class NoModelException() : NullReferenceException("No Model is set") { }
+    public class NoNavigatorException() : NullReferenceException("No Navigator is set") { }
     public class AssemblyCreateInstanceFailure(string text) : Exception(text) { }
     public class CurrentUserNotSetException() : Exception("CurrentUser.Is property was not set.") { }
     public class InvalidTargetsException(string target1, string target2) : Exception($"{target1} and {target2} arguments cannot be null or empty strings") { }
