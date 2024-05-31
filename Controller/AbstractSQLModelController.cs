@@ -90,7 +90,11 @@ namespace Backend.Controller
         {
             if (!CanMove()) return false;
             bool moved = Navigator.MoveFirst();
-            if (!moved) return false;
+            if (!moved) 
+            {
+                Records = Source.RecordPositionDisplayer();
+                return false;
+            }
             CurrentModel = Navigator.Current;
             Records = Source.RecordPositionDisplayer();
             return true;

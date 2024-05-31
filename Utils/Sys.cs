@@ -25,7 +25,6 @@ namespace Backend.Utils
         /// </summary>
         public static void OnNoUsers()
         {
-            long? count = DatabaseManager.Find("User")?.CountRecords();
             UpdateFirstTimeLogin((count == 0) ? true : false);
         }
 
