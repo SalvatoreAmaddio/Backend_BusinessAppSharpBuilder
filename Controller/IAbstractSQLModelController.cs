@@ -4,7 +4,7 @@ using Backend.Source;
 
 namespace Backend.Controller
 {
-    public interface IAbstractSQLModelController
+    public interface IAbstractSQLModelController : IDisposable
     {
         /// <summary>
         /// Override this method to return a zero-based index. This index fetches an 

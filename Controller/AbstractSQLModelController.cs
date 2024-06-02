@@ -5,7 +5,7 @@ using Backend.Source;
 
 namespace Backend.Controller
 {
-    public abstract class AbstractSQLModelController : IAbstractSQLModelController, IDisposable
+    public abstract class AbstractSQLModelController : IAbstractSQLModelController
     {
         protected bool _disposed = false;
         protected bool _allowNewRecord = true;
