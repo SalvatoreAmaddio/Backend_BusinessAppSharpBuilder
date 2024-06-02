@@ -130,8 +130,8 @@ namespace Backend.Controller
                 return false;
             }
             if (record.IsNewRecord()) return GoNew();
-            Navigator.MoveAt(record);
-            CurrentModel = Navigator.Current;
+            bool moved = Navigator.MoveAt(record);
+            CurrentModel = record;
             Records = Source.RecordPositionDisplayer();
             return true;
         }
