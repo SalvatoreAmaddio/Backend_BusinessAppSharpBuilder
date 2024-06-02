@@ -133,6 +133,8 @@ namespace Backend.Database
         /// <returns>An object representing the result of an aggregate function.</returns>
         public object? AggregateQuery(string sql, List<QueryParameter>? parameters = null);
 
+        public Task<object?> AggregateQueryAsync(string sql, List<QueryParameter>? parameters = null);
+
         /// <summary>
         /// It performs a Count query against the database. This method is meant to return one value only.
         /// <para/>
@@ -152,5 +154,8 @@ namespace Backend.Database
         /// <param name="parameters">A List of object parameter, it can be null</param>
         /// <returns>How many records the query returned.</returns>
         public long? CountRecords(string? sql = null, List<QueryParameter>? parameters = null);
+
+        public Task<long?> CountRecordsAsync(string? sql = null, List<QueryParameter>? parameters = null);
+
     }
 }

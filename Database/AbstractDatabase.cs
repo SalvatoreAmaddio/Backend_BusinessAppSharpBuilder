@@ -188,6 +188,43 @@ namespace Backend.Database
             if (string.IsNullOrEmpty(sql)) throw new Exception("No SQL Statement provided");
             return (long?)AggregateQuery(sql, parameters);
         }
+
+        public async Task<long?> CountRecordsAsync(string? sql = null, List<QueryParameter>? parameters = null)
+        {
+            if (string.IsNullOrEmpty(sql) && Model != null)
+                sql = Model.RecordCountQry + ";";
+            if (string.IsNullOrEmpty(sql)) throw new Exception("No SQL Statement provided");
+            return (long?) await AggregateQueryAsync(sql, parameters);
+        }
+        public async Task<object?> AggregateQueryAsync(string sql, List<QueryParameter>? parameters = null)
+        {
+            object? value = null;
+            using (DbConnection connection = await CreateConnectionObjectAsync())
+            {
+                await connection.OpenAsync();
+                using (DbTransaction transaction = await connection.BeginTransactionAsync())
+                {
+                    using (DbCommand cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = sql;
+                        cmd.Transaction = transaction;
+                        SetParameters(cmd, parameters);
+                        value = await cmd.ExecuteScalarAsync();
+                    }
+                    try
+                    {
+                        await transaction.CommitAsync();
+                        return value;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("An error occurred: " + ex.Message);
+                        return value;
+                    }
+                }
+            }
+        }
+
         public object? AggregateQuery(string sql, List<QueryParameter>? parameters = null)
         {
             object? value = null;
