@@ -1,6 +1,5 @@
 ﻿using Backend.Database;
 using Backend.Model;
-using System.Data.Common;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -8,43 +7,6 @@ namespace Backend.Utils
 {
     public class Sys
     {
-        /// <summary>
-        /// Get a <see cref="DateTime"/> object from a <see cref="DbDataReader"/>. This method is preferred as it handles scenario where the DateTime object is null in the Database.
-        /// </summary>
-        /// <param name="reader">A <see cref="DbDataReader"/> object</param>
-        /// <param name="index">the ordinal position of the column</param>
-        /// <returns>A <see cref="DateTime"/> object</returns>
-        public static DateTime? GetDate(DbDataReader reader, int index)
-        {
-            try
-            {
-                return reader.GetDateTime(index);
-            }
-            catch
-            {
-                return null;
-            }
-
-        }
-        /// <summary>
-        /// Extract the <see cref="TimeSpan"/> from a <see cref="DateTime"/>. This method is preferred when trying to get a <see cref="TimeSpan"/> from a database call.
-        /// </summary>
-        /// <param name="date"></param>
-        /// <returns>A <see cref="TimeSpan"/></returns>
-        public static TimeSpan? GetTime(DbDataReader reader, int index)
-        {
-            DateTime? date = null;
-            try 
-            { 
-                date = reader.GetDateTime(index);
-                return GetTime(date);
-            }
-            catch 
-            { 
-                return null;
-            }
-        }
-
         /// <summary>
         /// Extract the <see cref="TimeSpan"/> from a <see cref="DateTime"/>
         /// </summary>
