@@ -9,8 +9,9 @@ namespace Backend.Model
     /// <summary>
     /// This class implements <see cref="ISQLModel"/> and represents a SQL's Table.
     /// </summary>
-    abstract public class AbstractSQLModel : ISQLModel
+    public abstract class AbstractSQLModel : ISQLModel
     {
+        private readonly List<SimpleTableField> emptyFields = [];
         public string SelectQry { get; set; } = string.Empty;
         public string UpdateQry { get; set; } = string.Empty;
         public string InsertQry { get; set; } = string.Empty;
@@ -129,8 +130,6 @@ namespace Backend.Model
             }
         }
 
-        private readonly List<SimpleTableField> emptyFields = [];
-
         public string GetEmptyMandatoryFields() 
         {
             StringBuilder sb = new();
@@ -173,7 +172,12 @@ namespace Backend.Model
 
             return emptyFields.Count == 0;
         }
-    
+
+        public virtual void Dispose()
+        {
+            emptyFields.Clear();
+            GC.SuppressFinalize(this);
+        }
     }
 
     public class SimpleTableField(string name, object? value, PropertyInfo property)
@@ -183,7 +187,6 @@ namespace Backend.Model
         private object? Value { get; set; } = value;
         public bool Changed { get; private set; } = false;
         public override string? ToString() => Name;
-
         public object? GetValue() => Value;
         public void SetValue(object? value) => Value = value;
         public void Change(bool value) => Changed = value;

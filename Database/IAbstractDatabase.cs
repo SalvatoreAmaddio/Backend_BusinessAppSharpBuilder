@@ -8,7 +8,7 @@ namespace Backend.Database
     /// <summary>
     /// Interface that defines the properties and methods that a Database class shoud implement.
     /// </summary>
-    public interface IAbstractDatabase
+    public interface IAbstractDatabase : IDisposable
     {
         public Type ModelType { get; }
 

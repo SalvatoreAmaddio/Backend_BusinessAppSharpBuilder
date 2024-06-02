@@ -3,7 +3,7 @@ using Backend.Model;
 
 namespace Backend.Source
 {
-    public class MasterSource : List<ISQLModel>, IParentSource
+    public class MasterSource : List<ISQLModel>, IParentSource, IDisposable
     {
         private List<IChildSource> Children { get; } = [];
 
@@ -24,5 +24,10 @@ namespace Backend.Source
 
         public void RemoveChild(IChildSource child) => Children.Remove(child);
 
+        public void Dispose()
+        {
+            Clear();
+            Children.Clear();
+        }
     }
 }

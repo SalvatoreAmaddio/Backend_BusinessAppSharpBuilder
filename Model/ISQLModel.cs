@@ -7,7 +7,7 @@ namespace Backend.Model
     /// This interface defines a set of methods and properties that allow a
     /// <see cref="AbstractDatabase"/> object to talk to a <see cref="AbstractSQLModel"/> object
     /// </summary>
-    public interface ISQLModel 
+    public interface ISQLModel : IDisposable
     {
         public IEnumerable<string> GetEntityFields();
         public IEnumerable<ITableField> GetAllTableFields();

@@ -10,7 +10,7 @@ namespace Backend.Source
     /// This class extends the <see cref="Collection{T}"/> and deals with IEnumerable&lt;<see cref="ISQLModel"/>&gt;. As Enumerator it uses a <see cref="INavigator"/>.
     /// see also the <seealso cref="Navigator"/> class.
     /// </summary>
-    public class RecordSource : Collection<ISQLModel>, IRecordSource, IChildSource, IDisposable
+    public class RecordSource : Collection<ISQLModel>, IRecordSource, IChildSource
     {
 
         private INavigator? navigator;
@@ -110,6 +110,7 @@ namespace Backend.Source
         public void Dispose()
         {
             ParentSource?.RemoveChild(this);
+            Controller?.Dispose();
             navigator = null;
             GC.SuppressFinalize(this);
         }

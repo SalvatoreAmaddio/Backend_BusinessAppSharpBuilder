@@ -265,5 +265,10 @@ namespace Backend.Database
                 break;
             }
         }
+
+        public void Dispose()
+        {
+            MasterSource.Dispose();
+        }
     }
 }
