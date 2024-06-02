@@ -169,14 +169,17 @@ namespace Backend.Controller
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// This method helps to prevent memeory leaks by unsubscribing all Controller's events and <see cref="Source"/> events.  
+        /// This method is also called within <see cref="Dispose()"/>.
+        /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed) return;
 
             if (disposing)
-            {
                 ((RecordSource)Source).Dispose();
-            }
 
             _disposed = true;
         }
