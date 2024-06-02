@@ -169,6 +169,16 @@ namespace Backend.Controller
             GC.SuppressFinalize(this);
         }
 
-        protected abstract void Dispose(bool disposing);
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+
+            if (disposing)
+            {
+                ((RecordSource)Source).Dispose();
+            }
+
+            _disposed = true;
+        }
     }
 }
