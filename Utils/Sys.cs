@@ -1,5 +1,6 @@
 ﻿using Backend.Database;
 using Backend.Model;
+using System.Data.Common;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -7,6 +8,35 @@ namespace Backend.Utils
 {
     public class Sys
     {
+        /// <summary>
+        /// Extract the <see cref="TimeSpan"/> from a <see cref="DateTime"/>. This method is preferred when trying to get a <see cref="TimeSpan"/> from a database call.
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns>A <see cref="TimeSpan"/></returns>
+        public static TimeSpan? GetTime(DbDataReader reader, int index)
+        {
+            DateTime? date = null;
+            try 
+            { 
+                date = reader.GetDateTime(index);
+                return GetTime(date);
+            }
+            catch 
+            { 
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extract the <see cref="TimeSpan"/> from a <see cref="DateTime"/>
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns>A <see cref="TimeSpan"/></returns>
+        public static TimeSpan? GetTime(DateTime? date) 
+        { 
+            if (date == null) return null;
+            return new TimeSpan(date.Value.Hour, date.Value.Minute, date.Value.Second);
+        }
         /// <summary>
         /// Store a new user in the database.
         /// </summary>
