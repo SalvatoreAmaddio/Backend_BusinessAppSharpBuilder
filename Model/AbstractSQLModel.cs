@@ -23,6 +23,15 @@ namespace Backend.Model
         }
 
         public abstract ISQLModel Read(DbDataReader reader);
+
+        public IEnumerable<PropertyInfo> GetProperties()
+        {
+            Type type = GetType();
+            PropertyInfo[] props = type.GetProperties();
+            foreach (PropertyInfo prop in props)
+                yield return prop;
+        }
+
         public IEnumerable<ITableField> GetTableFields() => GetTableFieldsAs<Field>();
         public TableField? GetTablePK() 
         {

@@ -1,5 +1,6 @@
 ﻿using Backend.Database;
 using System.Data.Common;
+using System.Reflection;
 
 namespace Backend.Model
 {
@@ -9,6 +10,7 @@ namespace Backend.Model
     /// </summary>
     public interface ISQLModel : IDisposable
     {
+        public IEnumerable<PropertyInfo> GetProperties();
         public IEnumerable<string> GetEntityFields();
         public IEnumerable<ITableField> GetAllTableFields();
 
