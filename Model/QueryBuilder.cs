@@ -105,30 +105,23 @@ namespace Backend.Model
             else
             {
                 foreach (string s in Fields)
-                {
                     sb.Append(s);
-                }
             }
 
             sb.Append($" FROM {tableName}");
             
             foreach (string s in Joins)
-            {
                 sb.Append(s);
-            }
 
             if (WhereClause.Length > 0)
-            {
                 sb.Append(WhereClause);
-            }
 
             foreach (string s in WhereCondition)
-            {
                 sb.Append(s);
-            }
 
             WhereCondition.Clear();
             Joins.Clear();
+            Fields.Clear();
             return sb.ToString();
         }
         
