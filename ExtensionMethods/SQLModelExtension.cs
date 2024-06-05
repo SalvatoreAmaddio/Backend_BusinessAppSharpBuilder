@@ -10,6 +10,18 @@ namespace Backend.ExtensionMethods
             return s.SelectAll();
         }
 
+        public static SelectBuilder Sum(this ISQLModel model, string field)
+        {
+            SelectBuilder s = new(model);
+            return s.Sum(field);
+        }
+
+        public static SelectBuilder CountAll(this ISQLModel model)
+        {
+            SelectBuilder s = new(model);
+            return s.CountAll();
+        }
+
         public static SelectBuilder SelectFields(this ISQLModel model, params string[] fields)
         {
             SelectBuilder s = new(model);
@@ -24,7 +36,7 @@ namespace Backend.ExtensionMethods
         public static SelectBuilder InnerJoin(this ISQLModel model, ISQLModel fk)
         {
             SelectBuilder s = new(model);
-            return s.InnerJoin(fk);
+            return s.MakeJoin(fk, "INNER JOIN");
         }
 
         /// <summary>
@@ -35,9 +47,14 @@ namespace Backend.ExtensionMethods
         public static SelectBuilder LeftJoin(this ISQLModel model, ISQLModel fk)
         {
             SelectBuilder s = new(model);
-            return s.LeftJoin(fk);
+            return s.MakeJoin(fk, "LEFT JOIN");
         }
 
+        public static SelectBuilder LeftJoin(this ISQLModel model, string tableName, string key)
+        {
+            SelectBuilder s = new(model);
+            return s.MakeJoin(tableName, "LEFT JOIN", key);
+        }
 
         /// <summary>
         /// Returns a <see cref="SelectBuilder"/> object with a <c>RIGHT JOIN</c> in the <c>FROM</c> clause.
@@ -47,7 +64,7 @@ namespace Backend.ExtensionMethods
         public static SelectBuilder RightJoin(this ISQLModel model, ISQLModel fk)
         {
             SelectBuilder s = new(model);
-            return s.RightJoin(fk);
+            return s.MakeJoin(fk, "RIGHT JOIN");
         }
 
         public static SelectBuilder Where(this ISQLModel model)

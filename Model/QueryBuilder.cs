@@ -124,14 +124,34 @@ namespace Backend.Model
             Fields.Clear();
             return sb.ToString();
         }
-        
-        private SelectBuilder MakeJoin(ISQLModel model, string join)
+
+        public SelectBuilder MakeJoin(string tableName, string join, string? key)
+        {
+            Joins.Add($" {join}");
+            Joins.Add($" {tableName} ON {this.tableName}.{key} = {tableName}.{key}");
+            return this;
+        }
+
+        public SelectBuilder MakeJoin(ISQLModel model, string join)
         {
             string? key = model.GetTablePK()?.Name;
             Joins.Add($" {join}");
             Joins.Add($" {model.GetTableName()} ON {tableName}.{key} = {model.GetTableName()}.{key}");
             return this;
         }
+
+        public SelectBuilder RightJoin(string tableName, string? key) => MakeJoin(tableName, "RIGHT JOIN", key);
+
+        public SelectBuilder LeftJoin(string tableName, string? key) => MakeJoin(tableName, "LEFT JOIN", key);
+
+        public SelectBuilder InnerJoin(string tableName, string? key) => MakeJoin(tableName, "INNER JOIN", key);
+
+        public SelectBuilder RightJoin(ISQLModel model) => MakeJoin(model, "RIGHT JOIN");
+
+        public SelectBuilder LeftJoin(ISQLModel model) => MakeJoin(model, "LEFT JOIN");
+
+        public SelectBuilder InnerJoin(ISQLModel model) => MakeJoin(model,"INNER JOIN");
+
 
         /// <summary>
         /// Adds '*' to the <c>SELECT</c> Clause. 
@@ -140,6 +160,17 @@ namespace Backend.Model
         public SelectBuilder SelectAll() 
         {
             Fields.Add($"{tableName}.*");
+            return this;
+        }
+
+        public SelectBuilder Sum(string field) 
+        {
+            Fields.Add($"sum({field})");
+            return this;
+        }
+        public SelectBuilder CountAll()
+        {
+            Fields.Add($"Count(*)");
             return this;
         }
 
@@ -163,24 +194,6 @@ namespace Backend.Model
         }
 
         /// <summary>
-        /// Adds a <c>INNER JOIN</c> the <c>FROM</c> Clause. 
-        /// </summary>
-        /// <returns>A <see cref="SelectBuilder"/> object </returns>
-        public SelectBuilder InnerJoin(ISQLModel model) => MakeJoin(model, "INNER JOIN");
-
-        /// <summary>
-        /// Adds a <c>RIGHT JOIN</c> the <c>FROM</c> Clause. 
-        /// </summary>
-        /// <returns>A <see cref="SelectBuilder"/> object </returns>
-        public SelectBuilder RightJoin(ISQLModel model) => MakeJoin(model, "RIGHT JOIN");
-
-        /// <summary>
-        /// Adds a <c>LEFT JOIN</c> the <c>FROM</c> Clause. 
-        /// </summary>
-        /// <returns>A <see cref="SelectBuilder"/> object </returns>
-        public SelectBuilder LeftJoin(ISQLModel model) => MakeJoin(model, "LEFT JOIN");
-
-        /// <summary>
         /// Adds a <c>WHERE</c> Clause. 
         /// </summary>
         /// <returns>A <see cref="SelectBuilder"/> object </returns>
@@ -200,11 +213,17 @@ namespace Backend.Model
             return this;
         }
 
+        public SelectBuilder IsNull(string field)
+        {
+            WhereCondition.Add($"{field} IS NULL");
+            return this;
+        }
+
         /// <summary>
         /// Adds a <c>=</c> condition to the <c>WHERE</c> Clause. 
         /// </summary>
         /// <returns>A <see cref="SelectBuilder"/> object </returns>
-        public SelectBuilder Equals(string field, string placeholder)
+        public SelectBuilder EqualsTo(string field, string placeholder)
         {
             WhereCondition.Add($"{field} = {placeholder}");
             return this;
