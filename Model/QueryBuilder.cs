@@ -146,7 +146,7 @@ namespace Backend.Model
         /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder SelectAll() 
         {
-            Fields.Add("*");
+            Fields.Add($"{tableName}.*");
             return this;
         }
 
