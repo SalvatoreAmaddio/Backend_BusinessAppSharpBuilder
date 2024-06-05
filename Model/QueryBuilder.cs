@@ -91,6 +91,10 @@ namespace Backend.Model
         private ISQLModel model = model;
         private string tableName => model.GetTableName();
 
+        /// <summary>
+        /// Returns the built SELECT Statement.
+        /// </summary>
+        /// <returns>a string</returns>
         public string Statement()
         {
             StringBuilder sb = new();
@@ -127,6 +131,7 @@ namespace Backend.Model
             Joins.Clear();
             return sb.ToString();
         }
+        
         private SelectBuilder MakeJoin(ISQLModel model, string join)
         {
             string? key = model.GetTablePK()?.Name;
@@ -135,12 +140,20 @@ namespace Backend.Model
             return this;
         }
 
+        /// <summary>
+        /// Adds '*' to the <c>SELECT</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder SelectAll() 
         {
             Fields.Add("*");
             return this;
         }
 
+        /// <summary>
+        /// Adds a set of fields to the <c>SELECT</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder SelectFields(params string[] fields)
         {
             if (Fields.Count > 0) 
@@ -156,61 +169,118 @@ namespace Backend.Model
             return this;
         }
 
+        /// <summary>
+        /// Adds a <c>INNER JOIN</c> the <c>FROM</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder InnerJoin(ISQLModel model) => MakeJoin(model, "INNER JOIN");
+
+        /// <summary>
+        /// Adds a <c>RIGHT JOIN</c> the <c>FROM</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder RightJoin(ISQLModel model) => MakeJoin(model, "RIGHT JOIN");
+
+        /// <summary>
+        /// Adds a <c>LEFT JOIN</c> the <c>FROM</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder LeftJoin(ISQLModel model) => MakeJoin(model, "LEFT JOIN");
+
+        /// <summary>
+        /// Adds a <c>WHERE</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder Where()
         {
             WhereClause = " WHERE ";
             return this;
         }
+
+        /// <summary>
+        /// Adds a <c>LIKE</c> operator to the <c>WHERE</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder Like(string field, string placeholder)
         {
-            string? key = model.GetTablePK()?.Name;
             WhereCondition.Add($"{field} LIKE {placeholder}");
             return this;
         }
+
+        /// <summary>
+        /// Adds a <c>=</c> condition to the <c>WHERE</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder Equals(string field, string placeholder)
         {
-            string? key = model.GetTablePK()?.Name;
             WhereCondition.Add($"{field} = {placeholder}");
             return this;
         }
+
+        /// <summary>
+        /// Adds a <c>!=</c> condition to the <c>WHERE</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder NotEquals(string field, string placeholder)
         {
-            string? key = model.GetTablePK()?.Name;
             WhereCondition.Add($"{field} != {placeholder}");
             return this;
         }
+
+        /// <summary>
+        /// Adds a <c>></c> condition to the <c>WHERE</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder Greater(string field, string placeholder)
         {
-            string? key = model.GetTablePK()?.Name;
             WhereCondition.Add($"{field} > {placeholder}");
             return this;
         }
+
+        /// <summary>
+        /// Adds a <c>>=</c> condition to the <c>WHERE</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder GreaterEquals(string field, string placeholder)
         {
-            string? key = model.GetTablePK()?.Name;
             WhereCondition.Add($"{field} >= {placeholder}");
             return this;
         }
+
+        /// <summary>
+        /// Adds a <c>&lt;</c> condition to the <c>WHERE</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder Smaller(string field, string placeholder)
         {
-            string? key = model.GetTablePK()?.Name;
             WhereCondition.Add($"{field} < {placeholder}");
             return this;
         }
+
+        /// <summary>
+        /// Adds a <c>&lt;=</c> condition to the <c>WHERE</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder SmallerEquals(string field, string placeholder)
         {
-            string? key = model.GetTablePK()?.Name;
             WhereCondition.Add($"{field} <= {placeholder}");
             return this;
         }
+
+        /// <summary>
+        /// Adds a <c>OR</c> operator to the <c>WHERE</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder OR()
         {
             WhereCondition.Add($" OR ");
             return this;
         }
+
+        /// <summary>
+        /// Adds a opened round bracket to the Statement. If called before <see cref="Where"/>, the bracket is added to the <c>FROM</c> clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder OpenBracket()
         {
             if (WhereClause.Length == 0) 
@@ -218,6 +288,11 @@ namespace Backend.Model
             else WhereCondition.Add($"(");
             return this;
         }
+
+        /// <summary>
+        /// Adds a closed round bracket to the Statement. If called before <see cref="Where"/>, the bracket is added to the <c>FROM</c> clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder CloseBracket()
         {
             if (WhereClause.Length == 0)
@@ -225,6 +300,11 @@ namespace Backend.Model
             else WhereCondition.Add($")");
             return this;
         }
+
+        /// <summary>
+        /// Adds a <c>AND</c> operator to the <c>WHERE</c> Clause. 
+        /// </summary>
+        /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder AND()
         {
             WhereCondition.Add($" AND ");
