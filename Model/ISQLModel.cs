@@ -137,4 +137,8 @@ namespace Backend.Model
         /// <returns>A string</returns>
         public string GetEmptyMandatoryFields();
     }
+
+    /// <summary>
+    /// This interface defines a set of methods that help to construct a more complex query.
+    /// </summary>
 }

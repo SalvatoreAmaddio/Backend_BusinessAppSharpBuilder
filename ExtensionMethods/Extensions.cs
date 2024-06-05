@@ -5,6 +5,7 @@ namespace Backend.ExtensionMethods
 {
     public static class Extensions
     {
+
         /// <summary>
         /// Try to fetch a <see cref="string"/>. <para/>
         /// This extension method hanldes Exceptions in case the field is null in the Database.
@@ -47,6 +48,18 @@ namespace Backend.ExtensionMethods
 
         }
 
+        public static double TryFetchDouble(this DbDataReader reader, int index)
+        {
+            try
+            {
+                return reader.GetDouble(index);
+            }
+            catch
+            {
+                return 0;
+            }
+
+        }
         /// <summary>
         /// Try to fetch the <see cref="TimeSpan"/> from a <see cref="DateTime"/>. <para/>
         /// This extension method hanldes Exceptions in case the field is null in the Database.
