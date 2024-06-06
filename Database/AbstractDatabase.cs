@@ -25,7 +25,7 @@ namespace Backend.Database
         public abstract string ConnectionString();
         public abstract DbConnection CreateConnectionObject();
         public Task<DbConnection> CreateConnectionObjectAsync() => Task.FromResult(CreateConnectionObject());
-        private void SetCommand(DbCommand cmd, string sql, List<QueryParameter>? parameters)
+        private void SetCommandWithParameters(DbCommand cmd, string sql, List<QueryParameter>? parameters)
         {
             if (Model == null) throw new NoModelException();
             cmd.CommandText = sql;
@@ -93,7 +93,7 @@ namespace Backend.Database
                 await connection.OpenAsync();
                 using (DbCommand cmd = connection.CreateCommand())
                 {
-                    SetCommand(cmd, sql, parameters);
+                    SetCommandWithParameters(cmd, sql, parameters);
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
@@ -118,7 +118,7 @@ namespace Backend.Database
                     using (DbCommand cmd = connection.CreateCommand())
                     {
                         cmd.Transaction = transaction;
-                        SetCommand(cmd, sql, parameters);
+                        SetCommandWithParameters(cmd, sql, parameters);
                         using (DbDataReader reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
@@ -126,6 +126,60 @@ namespace Backend.Database
                         }
                     }
                     transaction.Commit();
+                }
+            }
+        }
+
+        public async Task ExecuteQueryAsync(string sql, List<QueryParameter>? parameters = null)
+        {
+            using (DbConnection connection = await CreateConnectionObjectAsync())
+            {
+                await connection.OpenAsync();
+                using (DbTransaction transaction = await connection.BeginTransactionAsync())
+                {
+                    using (DbCommand cmd = connection.CreateCommand())
+                    {
+                        cmd.Transaction = transaction;
+                        cmd.CommandText = sql;
+                        SetParameters(cmd, parameters);
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                    try
+                    {
+                        await transaction.CommitAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("An error occurred: " + ex.Message);
+                        await transaction.RollbackAsync();
+                    }
+                }
+            }
+        }
+
+        public void ExecuteQuery(string sql, List<QueryParameter>? parameters = null)
+        {
+            using (DbConnection connection = CreateConnectionObject())
+            {
+                connection.Open();
+                using (DbTransaction transaction = connection.BeginTransaction())
+                {
+                    using (DbCommand cmd = connection.CreateCommand())
+                    {
+                        cmd.Transaction = transaction;
+                        cmd.CommandText = sql;
+                        SetParameters(cmd, parameters);
+                        cmd.ExecuteNonQuery();
+                    }
+                    try
+                    {
+                        transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("An error occurred: " + ex.Message);
+                        transaction?.Rollback();
+                    }
                 }
             }
         }
@@ -154,7 +208,7 @@ namespace Backend.Database
                 }
             }
 
-            using (var connection = CreateConnectionObject())
+            using (DbConnection connection = CreateConnectionObject())
             {
                 connection.Open();
                 using (DbTransaction transaction = connection.BeginTransaction())
@@ -162,7 +216,7 @@ namespace Backend.Database
                     using (DbCommand cmd = connection.CreateCommand())
                     {
                         cmd.Transaction = transaction;
-                        SetCommand(cmd, sql!, parameters);
+                        SetCommandWithParameters(cmd, sql!, parameters);
                         cmd.ExecuteNonQuery();
                         lastID = (crud == CRUD.INSERT) ? RetrieveLastInsertedID(connection, transaction, LastIDQry()) : null;
                     }
@@ -181,6 +235,7 @@ namespace Backend.Database
                 }
             }
         }
+
         public long? CountRecords(string? sql = null, List<QueryParameter>? parameters = null)
         {
             if (string.IsNullOrEmpty(sql) && Model != null)
@@ -253,6 +308,7 @@ namespace Backend.Database
                 }
             }
         }
+
         private static long? RetrieveLastInsertedID(DbConnection connection, DbTransaction transaction, string sql)
         {
             using (DbCommand cmd = connection.CreateCommand())

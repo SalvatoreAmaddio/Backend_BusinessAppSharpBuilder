@@ -10,6 +10,9 @@ namespace Backend.Database
     /// </summary>
     public interface IAbstractDatabase : IDisposable
     {
+        public Task ExecuteQueryAsync(string sql, List<QueryParameter>? parameters = null);
+        public void ExecuteQuery(string sql, List<QueryParameter>? parameters = null);
+
         public Type ModelType { get; }
 
         /// <summary>
