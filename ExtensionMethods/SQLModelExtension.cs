@@ -39,6 +39,12 @@ namespace Backend.ExtensionMethods
             return s.MakeJoin(fk, "INNER JOIN");
         }
 
+        public static SelectBuilder InnerJoin(this ISQLModel model, string tableName1, string tableName2, string key1, string key2)
+        {
+            SelectBuilder s = new(model);
+            return s.MakeJoin("INNER JOIN", tableName1,tableName2,key1,key2);
+        }
+
         /// <summary>
         /// Returns a <see cref="QueryBuilder"/> object with a <c>LEFT JOIN</c> in the <c>FROM</c> clause.
         /// </summary>
