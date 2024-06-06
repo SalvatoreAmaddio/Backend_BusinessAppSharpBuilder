@@ -156,10 +156,17 @@ namespace Backend.Model
             return this;
         }
 
-        public SelectBuilder MakeJoin(string tableName, string join, string? key)
+        public SelectBuilder MakeJoin(string join, string tableName1, string tableName2, string commonKey)
         {
             Joins.Add($" {join}");
-            Joins.Add($" {tableName} ON {this.tableName}.{key} = {tableName}.{key}");
+            Joins.Add($" {tableName1} ON {tableName1}.{commonKey} = {tableName2}.{commonKey}");
+            return this;
+        }
+
+        public SelectBuilder MakeJoin(string tableName, string join, string? tableNameKey)
+        {
+            Joins.Add($" {join}");
+            Joins.Add($" {tableName} ON {this.tableName}.{tableNameKey} = {tableName}.{tableNameKey}");
             return this;
         }
 
