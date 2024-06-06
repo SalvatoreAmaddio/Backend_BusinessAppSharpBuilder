@@ -84,6 +84,8 @@ namespace Backend.Model
 
     public class SelectBuilder(ISQLModel model) 
     {
+        private string _OpenBracket = string.Empty;
+        private string Limit = string.Empty;
         private string WhereClause = string.Empty;
         private readonly List<string> Fields = [];
         private readonly List<string> Joins = [];
@@ -108,8 +110,14 @@ namespace Backend.Model
                     sb.Append(s);
             }
 
-            sb.Append($" FROM {tableName}");
-            
+            if (_OpenBracket.Length == 0) 
+            {
+                sb.Append($" FROM {tableName}");
+            } else 
+            {
+                sb.Append($" FROM ({tableName}");
+            }
+
             foreach (string s in Joins)
                 sb.Append(s);
 
@@ -119,10 +127,26 @@ namespace Backend.Model
             foreach (string s in WhereCondition)
                 sb.Append(s);
 
+            if (Limit.Length > 0)
+                sb.Append(Limit);
+
             WhereCondition.Clear();
             Joins.Clear();
             Fields.Clear();
             return sb.ToString();
+        }
+
+        public SelectBuilder LIMIT(int limit =1) 
+        {
+            Limit = $" LIMIT {limit}";
+            return this;
+        }
+
+        public SelectBuilder MakeJoin(string join, string tableName1, string tableName2, string key1, string key2)
+        {
+            Joins.Add($" {join}");
+            Joins.Add($" {tableName1} ON {tableName1}.{key1} = {tableName2}.{key2}");
+            return this;
         }
 
         public SelectBuilder MakeJoin(string tableName, string join, string? key)
@@ -151,6 +175,8 @@ namespace Backend.Model
         public SelectBuilder LeftJoin(ISQLModel model) => MakeJoin(model, "LEFT JOIN");
 
         public SelectBuilder InnerJoin(ISQLModel model) => MakeJoin(model,"INNER JOIN");
+
+        public SelectBuilder InnerJoin(string tableName1, string tableName2, string key1, string key2) => MakeJoin("INNER JOIN",tableName1,tableName2,key1,key2);
 
 
         /// <summary>
@@ -295,8 +321,10 @@ namespace Backend.Model
         /// <returns>A <see cref="SelectBuilder"/> object </returns>
         public SelectBuilder OpenBracket()
         {
-            if (WhereClause.Length == 0) 
-            Joins.Add($"(");
+            if (WhereClause.Length == 0 && Joins.Count == 0)
+                _OpenBracket = "(";
+            else if (WhereClause.Length == 0 && Joins.Count != 0)
+                Joins.Add($"(");
             else WhereCondition.Add($"(");
             return this;
         }
