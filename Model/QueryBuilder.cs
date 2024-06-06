@@ -1,4 +1,4 @@
-﻿using Microsoft.Office.Interop.Excel;
+﻿using Backend.Database;
 using System.Text;
 
 namespace Backend.Model
@@ -78,11 +78,10 @@ namespace Backend.Model
             sb.Append($");");
             return sb.ToString();
         }
-
     }
 
 
-    public class SelectBuilder(ISQLModel model) 
+    public class SelectBuilder(ISQLModel model)  : IDisposable
     {
         private string _OpenBracket = string.Empty;
         private string Limit = string.Empty;
@@ -90,8 +89,18 @@ namespace Backend.Model
         private readonly List<string> Fields = [];
         private readonly List<string> Joins = [];
         private readonly List<string> WhereCondition = [];
+        private readonly List<QueryParameter> _parameters = [];
         private ISQLModel model = model;
         private string tableName => model.GetTableName();
+
+        /// <summary>
+        /// Add a parameter to the <see cref="Params"/> property.
+        /// </summary>
+        /// <param name="placeholder">A string representing the placeholder. e.g. @name</param>
+        /// <param name="value">The value of the parameter</param>
+        public void AddParameter(string placeholder, object? value) => _parameters.Add(new(placeholder, value));
+
+
 
         /// <summary>
         /// Returns the built SELECT Statement.
@@ -130,12 +139,10 @@ namespace Backend.Model
             if (Limit.Length > 0)
                 sb.Append(Limit);
 
-            WhereCondition.Clear();
-            Joins.Clear();
-            Fields.Clear();
             return sb.ToString();
         }
 
+        public List<QueryParameter> Params() => _parameters;
         public SelectBuilder LIMIT(int limit =1) 
         {
             Limit = $" LIMIT {limit}";
@@ -349,6 +356,41 @@ namespace Backend.Model
         {
             WhereCondition.Add($" AND ");
             return this;
+        }
+
+        public bool HasWhereClause() => this.WhereClause.Length > 0;
+
+        public bool HasWhereConditons() => WhereCondition.Count > 0;
+
+        public SelectBuilder RemoveLastWhereCondition()
+        {
+            WhereCondition.RemoveAt(WhereCondition.Count-1);
+            return this;
+        }
+
+        public SelectBuilder ClearWhere()
+        {
+            this.WhereClause = string.Empty;
+            return ClearWhereConditions();
+        }
+        public SelectBuilder ClearWhereConditions() 
+        {
+            WhereCondition.Clear();
+            return this;
+        }
+
+        public override string? ToString()
+        {
+            return Statement();
+        }
+
+        public void Dispose()
+        {
+            Fields.Clear();
+            Joins.Clear();
+            WhereCondition.Clear();
+            _parameters.Clear();
+            GC.SuppressFinalize(this);
         }
     }
 }
