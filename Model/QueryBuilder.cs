@@ -163,7 +163,7 @@ namespace Backend.Model
             return this;
         }
 
-        public SelectBuilder MakeJoin(string tableName, string join, string? tableNameKey)
+        public SelectBuilder MakeJoin(string join, string tableName, string? tableNameKey)
         {
             Joins.Add($" {join}");
             Joins.Add($" {tableName} ON {this.tableName}.{tableNameKey} = {tableName}.{tableNameKey}");
@@ -178,18 +178,17 @@ namespace Backend.Model
             return this;
         }
 
-        public SelectBuilder RightJoin(string tableName, string? key) => MakeJoin(tableName, "RIGHT JOIN", key);
+        public SelectBuilder RightJoin(string tableName, string? key) => MakeJoin("RIGHT JOIN", tableName, key);
 
-        public SelectBuilder LeftJoin(string tableName, string? key) => MakeJoin(tableName, "LEFT JOIN", key);
-
-        public SelectBuilder InnerJoin(string tableName, string? key) => MakeJoin(tableName, "INNER JOIN", key);
+        public SelectBuilder LeftJoin(string tableName, string? key) => MakeJoin("LEFT JOIN", tableName, key);
 
         public SelectBuilder RightJoin(ISQLModel model) => MakeJoin(model, "RIGHT JOIN");
 
         public SelectBuilder LeftJoin(ISQLModel model) => MakeJoin(model, "LEFT JOIN");
 
         public SelectBuilder InnerJoin(ISQLModel model) => MakeJoin(model,"INNER JOIN");
-
+        public SelectBuilder InnerJoin(string tableName, string? key) => MakeJoin("INNER JOIN", tableName, key);
+        public SelectBuilder InnerJoin(string tableName, string tableName2, string commonKey) => MakeJoin("INNER JOIN", tableName, tableName2, commonKey);
         public SelectBuilder InnerJoin(string tableName1, string tableName2, string key1, string key2) => MakeJoin("INNER JOIN",tableName1,tableName2,key1,key2);
 
 
