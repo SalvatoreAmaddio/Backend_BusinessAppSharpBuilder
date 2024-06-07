@@ -315,8 +315,6 @@ namespace Backend.Model
         /// <returns></returns>
         private FromClause MakeJoin(string join, string fromTable, string toTable, string commonKey)
         {
-            if (_bits.Count == 2) RemoveLastChange();
-            _bits.Add(fromTable);
             _bits.Add(join);
             _bits.Add(toTable);
             _bits.Add("ON");
