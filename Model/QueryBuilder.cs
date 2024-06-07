@@ -377,6 +377,7 @@ namespace Backend.Model
             _bits.Add("DISTINCT");
             return this;
         }
+
         public SelectClause CountAll()
         {
             _bits.Add($"Count(*)");
