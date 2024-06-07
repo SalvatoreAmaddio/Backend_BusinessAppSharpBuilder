@@ -18,12 +18,9 @@ namespace Backend.Model
         public string DeleteQry { get; set; } = string.Empty;
         public string RecordCountQry { get; set; } = string.Empty;        
         
-        private SelectBuilder _selectBuilder;
-
         public AbstractSQLModel() 
         {
             _ = new QueryBuilder(this);
-            _selectBuilder = new(this);
         }
 
         public abstract ISQLModel Read(DbDataReader reader);
