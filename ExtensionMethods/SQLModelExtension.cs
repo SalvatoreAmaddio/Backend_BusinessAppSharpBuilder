@@ -63,7 +63,7 @@ namespace Backend.ExtensionMethods
         /// </summary>
         /// <param name="fk">a <see cref="ISQLModel"/> which represents the Table to join.</param>
         /// <returns>A <see cref="SelectBuilder"/> object.</returns>
-        public static SelectBuilder LeftJoin(this ISQLModel model, string tableName, string tableNameKey) => new SelectBuilder(model).MakeJoin(tableName, "LEFT JOIN", tableNameKey);
+        public static SelectBuilder LeftJoin(this ISQLModel model, string toTableName, string toTableNameKey) => new SelectBuilder(model).MakeJoin("LEFT JOIN", toTableName, toTableNameKey);
         #endregion
 
         #region RIGHT JOIN

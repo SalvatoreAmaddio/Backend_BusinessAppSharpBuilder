@@ -163,10 +163,10 @@ namespace Backend.Model
             return this;
         }
 
-        public SelectBuilder MakeJoin(string join, string tableName, string? tableNameKey)
+        public SelectBuilder MakeJoin(string join, string toTableName, string? tableNameKey)
         {
             Joins.Add($" {join}");
-            Joins.Add($" {tableName} ON {this.tableName}.{tableNameKey} = {tableName}.{tableNameKey}");
+            Joins.Add($" {toTableName} ON {this.tableName}.{tableNameKey} = {toTableName}.{tableNameKey}");
             return this;
         }
 
