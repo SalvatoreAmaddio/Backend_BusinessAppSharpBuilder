@@ -1,4 +1,5 @@
-﻿using Backend.Exceptions;
+﻿using Backend.Events;
+using Backend.Exceptions;
 using Backend.Model;
 using Backend.Source;
 using System.Data.Common;
@@ -10,6 +11,7 @@ namespace Backend.Database
     /// </summary>
     public abstract class AbstractDatabase(ISQLModel Model) : IAbstractDatabase
     {
+        protected event OnDatabaseConnectionOpen? OnConnectionOpenEvent;
         public virtual string DatabaseName { get; set; } = string.Empty;
         public ISQLModel Model { get; set; } = Model;
 
@@ -211,6 +213,7 @@ namespace Backend.Database
             using (DbConnection connection = CreateConnectionObject())
             {
                 connection.Open();
+                OnConnectionOpenEvent?.Invoke(this, new(connection, crud));
                 using (DbTransaction transaction = connection.BeginTransaction())
                 {
                     using (DbCommand cmd = connection.CreateCommand())
@@ -361,6 +364,7 @@ namespace Backend.Database
 
         public void Dispose()
         {
+            OnConnectionOpenEvent = null;
             MasterSource.Dispose();
         }
     }

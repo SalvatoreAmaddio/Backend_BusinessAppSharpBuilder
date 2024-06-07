@@ -5,6 +5,7 @@ using System.Data.SQLite;
 using System.Data;
 using System.Reflection;
 using Backend.Exceptions;
+using Backend.Events;
 
 namespace Backend.Database
 {
@@ -34,7 +35,18 @@ namespace Backend.Database
         {
             DatabaseName = dbName;
             Version = version;
-        } 
+            OnConnectionOpenEvent += OnConnectionOpen;
+        }
+
+        private void OnConnectionOpen(object? sender, DatabaseEventArgs e)
+        {
+            if (e.Crud != CRUD.DELETE) return;
+            using (var command = e.Connection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA foreign_keys = ON;";
+                command.ExecuteNonQuery();
+            }
+        }
 
         public override string ConnectionString() => $"Data Source={DatabaseName};Version={Version};";
         protected override string LastIDQry() => "SELECT last_insert_rowid()";
