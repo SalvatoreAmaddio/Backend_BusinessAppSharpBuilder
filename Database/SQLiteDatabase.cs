@@ -13,7 +13,7 @@ namespace Backend.Database
     /// <summary>
     /// This class is a concrete definition of <see cref="AbstractDatabase"/> meant for dealing with a SQLite database.
     /// </summary>
-    public class SQLiteDatabase(ISQLModel Model) : AbstractDatabase(Model)
+    public class SQLiteDatabase : AbstractDatabase
     {
 
         /// <summary>
@@ -31,11 +31,15 @@ namespace Backend.Database
         /// </summary>
         public override string DatabaseName { get; set; } = "Data/mydb.db";
 
+        public SQLiteDatabase(ISQLModel Model) : base(Model)
+        {
+            OnConnectionOpenEvent += OnConnectionOpen;
+        }
+
         public SQLiteDatabase(ISQLModel Model, string dbName, string version = "3") : this(Model) 
         {
             DatabaseName = dbName;
             Version = version;
-            OnConnectionOpenEvent += OnConnectionOpen;
         }
 
         private void OnConnectionOpen(object? sender, DatabaseEventArgs e)
