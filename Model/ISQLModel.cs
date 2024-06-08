@@ -10,6 +10,8 @@ namespace Backend.Model
     /// </summary>
     public interface ISQLModel : IDisposable
     {
+        public bool PropertyExists(string properyName);
+        public object? GetPropertyValue(string properyName); 
         public IEnumerable<PropertyInfo> GetProperties();
         public IEnumerable<string> GetEntityFields();
         public IEnumerable<ITableField> GetAllTableFields();

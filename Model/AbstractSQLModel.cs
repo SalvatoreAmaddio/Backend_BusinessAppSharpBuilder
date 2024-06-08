@@ -12,18 +12,34 @@ namespace Backend.Model
     public abstract class AbstractSQLModel : ISQLModel
     {
         private readonly List<SimpleTableField> emptyFields = [];
+
+        #region Properties
         public string SelectQry { get; set; } = string.Empty;
         public string UpdateQry { get; set; } = string.Empty;
         public string InsertQry { get; set; } = string.Empty;
         public string DeleteQry { get; set; } = string.Empty;
-        public string RecordCountQry { get; set; } = string.Empty;        
-        
-        public AbstractSQLModel() 
-        {
-            _ = new QueryBuilder(this);
-        }
+        public string RecordCountQry { get; set; } = string.Empty;
+        #endregion
+
+        public AbstractSQLModel() => _ = new QueryBuilder(this);
 
         public abstract ISQLModel Read(DbDataReader reader);
+
+        public bool PropertyExists(string properyName)
+        {
+            Type type = GetType();
+            return type.GetProperties().Cast<PropertyInfo>().Any(s => s.Name.Equals(properyName));
+        }
+        public object? GetPropertyValue(string properyName) 
+        {
+            Type type = GetType();
+            PropertyInfo[] props = type.GetProperties();
+            foreach (PropertyInfo prop in props) 
+            {
+                if (prop.Name.Equals(properyName)) return prop.GetValue(this);
+            }
+            return null;
+        }
 
         public IEnumerable<PropertyInfo> GetProperties()
         {
