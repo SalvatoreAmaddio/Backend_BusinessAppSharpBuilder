@@ -7,6 +7,22 @@ namespace Backend.Utils
 {
     public class Sys
     {
+
+        public static async Task TryDelete(string filePath) 
+        {
+            while (File.Exists(filePath))
+            {
+                await Task.Delay(1000);
+                try 
+                {
+                    File.Delete(filePath);
+                }
+                catch 
+                { 
+                
+                }
+            }
+        }
         public static string AppPath()
         { 
             return AppDomain.CurrentDomain.BaseDirectory;
