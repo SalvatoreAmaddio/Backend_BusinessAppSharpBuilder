@@ -17,7 +17,7 @@ namespace Backend.Utils
             set 
             { 
                 _destinationFolder = value;
-                DestinationFolder = Path.Combine(_destinationFolder, NewFileName);
+                DestinationFilePath = Path.Combine(_destinationFolder, NewFileName);
             }
         } 
         

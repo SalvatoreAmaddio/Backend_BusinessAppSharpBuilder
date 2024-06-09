@@ -7,6 +7,11 @@ namespace Backend.Utils
 {
     public class Sys
     {
+        public static string AppPath()
+        { 
+            return AppDomain.CurrentDomain.BaseDirectory;
+        }
+
         /// <summary>
         /// Extract the <see cref="TimeSpan"/> from a <see cref="DateTime"/>
         /// </summary>
