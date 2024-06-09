@@ -7,27 +7,12 @@ namespace Backend.Utils
 {
     public class Sys
     {
-
-        public static async Task TryDelete(string filePath) 
-        {
-            while (File.Exists(filePath))
-            {
-                await Task.Delay(1000);
-                try 
-                {
-                    File.Delete(filePath);
-                }
-                catch 
-                { 
-                
-                }
-            }
-        }
-        public static string AppPath()
-        { 
-            return AppDomain.CurrentDomain.BaseDirectory;
-        }
-
+        /// <summary>
+        /// The path of the current Application.
+        /// </summary>
+        /// <returns></returns>
+        public static string AppPath() => AppDomain.CurrentDomain.BaseDirectory;
+        
         /// <summary>
         /// Extract the <see cref="TimeSpan"/> from a <see cref="DateTime"/>
         /// </summary>
