@@ -7,6 +7,19 @@ namespace Backend.Utils
 {
     public class Sys
     {
+        public static bool AttemptFileDelete(string filePath) 
+        {
+            try 
+            {
+                File.Delete(filePath);
+                return true;
+            }
+            catch 
+            { 
+                return false;
+            }
+        }
+
         /// <summary>
         /// The path of the current Application.
         /// </summary>
