@@ -85,7 +85,7 @@ namespace Backend.Model
     public interface IQueryClause : IDisposable
     {
         public List<QueryParameter> Params();
-        public bool HasWhereClause();
+        public bool HasWhereConditions();
         public void RemoveLastChange();
         public string Statement();
         public IQueryClause OpenBracket();
@@ -110,7 +110,11 @@ namespace Backend.Model
         }
         public void AddParameter(string placeholder, object? value) => _parameters.Add(new(placeholder, value));
         public List<QueryParameter> Params() => _parameters;
-        public bool HasWhereClause() => _bits.Any(s => s.Equals("WHERE"));
+        public bool HasWhereConditions()
+        {
+            bool isWhereClause = _bits.Any(s => s.Equals("WHERE"));
+            return (isWhereClause) ? _bits.Count > 1 : false;
+        }
         public void Dispose()
         {
             _bits.Clear();
