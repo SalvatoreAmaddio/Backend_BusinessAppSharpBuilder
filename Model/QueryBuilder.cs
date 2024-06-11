@@ -1,4 +1,5 @@
 ﻿using Backend.Database;
+using MailKit.Search;
 using System.Text;
 
 namespace Backend.Model
@@ -146,6 +147,7 @@ namespace Backend.Model
     }
     public interface IFromClause : IQueryClause
     {
+        public OrderByClause OrderBy();
         public FromClause OpenBracket();
         public FromClause CloseBracket();
         public SelectClause? GetSelectClause();
@@ -163,6 +165,7 @@ namespace Backend.Model
     }
     public interface IWhereClause : IQueryClause
     {
+        public OrderByClause OrderBy();
         public WhereClause OpenBracket();
         public WhereClause CloseBracket();
         public WhereClause In(string field, params string[] values);
@@ -181,6 +184,40 @@ namespace Backend.Model
         public WhereClause Limit(int index = 1);
         public SelectClause? GetSelectClause();
         public FromClause? GetFromClause();
+    }
+    public class OrderByClause : AbstractClause 
+    {
+        public OrderByClause(IQueryClause clause, ISQLModel model) : base(model)
+        {
+            PreviousClause = clause;
+            _bits.Add("ORDER BY");
+        }
+
+        public OrderByClause Field(string field)
+        {
+            _bits.Add(field);
+            return this;
+        }
+
+        public override string Statement()
+        {
+            string? s = PreviousClause?.Statement();
+            sb.Clear();
+            sb.Append(s);
+            bool notFirstIndex = false;
+            bool notLastIndex = false;
+
+            for (int i = 0; i <= _bits.Count - 1; i++)
+            {
+                notFirstIndex = i > 0;
+                notLastIndex = i < _bits.Count - 1;
+                sb.Append(_bits[i]);
+                if (notFirstIndex && notLastIndex) sb.Append(',');
+                sb.Append(' ');
+            }
+
+            return sb.ToString();
+        }
     }
     public class WhereClause : AbstractClause, IWhereClause
     {
@@ -241,7 +278,6 @@ namespace Backend.Model
             _bits.Add($"LIMIT {index}");
             return this;
         }
-
         private WhereClause LogicalOperator(string oprt)
         {
             _bits.Add(oprt);
@@ -250,7 +286,6 @@ namespace Backend.Model
         public WhereClause OR() => LogicalOperator("OR");
         public WhereClause AND() => LogicalOperator("AND");
         public WhereClause NOT() => LogicalOperator("NOT");
-
         public WhereClause OpenBracket()
         {
             _bits.Add("(");
@@ -261,18 +296,17 @@ namespace Backend.Model
             _bits.Add(")");
             return this;
         }
-
         public FromClause? GetFromClause() 
         {
             if (PreviousClause is FromClause from) return from;
             return null;
         }
-
         public SelectClause? GetSelectClause()
         {
             if (PreviousClause is SelectClause select) return select;
             return GetFromClause()?.GetSelectClause();
         }
+        public OrderByClause OrderBy() => new(this, _model);
 
     }
     public class FromClause : AbstractClause, IFromClause
@@ -380,6 +414,7 @@ namespace Backend.Model
             if (PreviousClause is SelectClause select) return select;
             return null;
         }
+        public OrderByClause OrderBy() => new(this, _model);
 
     }
     public class SelectClause : AbstractClause, ISelectClause
