@@ -81,8 +81,6 @@ namespace Backend.Model
         }
     }
 
-    //////////////////////////////////////////////////////////////
-
     public interface IQueryClause : IDisposable
     {
         public List<QueryParameter> Params();

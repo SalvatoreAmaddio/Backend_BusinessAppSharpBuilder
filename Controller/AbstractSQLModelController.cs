@@ -7,7 +7,6 @@ namespace Backend.Controller
 {
     public abstract class AbstractSQLModelController : IAbstractSQLModelController
     {
-        protected bool _disposed = false;
         protected bool _allowNewRecord = true;
         public IAbstractDatabase Db { get; protected set; } = null!;
         public abstract int DatabaseIndex { get; }
@@ -163,25 +162,11 @@ namespace Backend.Controller
             return true;
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
-            Dispose(true);
+            ((RecordSource)Source).Dispose();
             GC.SuppressFinalize(this);
         }
 
-        /// <summary>
-        /// This method helps to prevent memeory leaks by unsubscribing all Controller's events and <see cref="Source"/> events.  
-        /// This method is also called within <see cref="Dispose()"/>.
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed) return;
-
-            if (disposing)
-                ((RecordSource)Source).Dispose();
-
-            _disposed = true;
-        }
     }
 }
