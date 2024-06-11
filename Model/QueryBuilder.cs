@@ -88,11 +88,8 @@ namespace Backend.Model
         public bool HasWhereConditions();
         public void RemoveLastChange();
         public string Statement();
-        public IQueryClause OpenBracket();
-        public IQueryClause CloseBracket();
         public void AddParameter(string placeholder, object? value);
     }
-
     public abstract class AbstractClause : IQueryClause
     {
         private readonly List<QueryParameter> _parameters = [];
@@ -101,7 +98,7 @@ namespace Backend.Model
         protected ISQLModel _model;
         protected string TableName { get; }
         protected string TableKey { get; }
-        protected IQueryClause? _clause;
+        public IQueryClause? PreviousClause { get; protected set; }
         public AbstractClause(ISQLModel model)
         {
             _model = model;
@@ -124,7 +121,7 @@ namespace Backend.Model
 
         public virtual string Statement()
         {
-            string? s = _clause?.Statement();
+            string? s = PreviousClause?.Statement();
             sb.Clear();
             sb.Append(s);
             for (int i = 0; i <= _bits.Count - 1; i++)
@@ -135,27 +132,8 @@ namespace Backend.Model
 
             return sb.ToString();
         }
-
-        public virtual IQueryClause OpenBracket()
-        {
-            _bits.Add("(");
-            return this;
-        }
-        public virtual IQueryClause CloseBracket()
-        {
-            _bits.Add(")");
-            return this;
-        }
-
-        public virtual AbstractClause Limit(int limit = 1)
-        {
-            _bits.Add($"LIMIT {limit}");
-            return this;
-        }
-
         public void RemoveLastChange() => _bits.RemoveAt(_bits.Count - 1);
     }
-
     public interface ISelectClause : IQueryClause
     {
         public SelectClause Sum(string field);
@@ -168,6 +146,9 @@ namespace Backend.Model
     }
     public interface IFromClause : IQueryClause
     {
+        public FromClause OpenBracket();
+        public FromClause CloseBracket();
+        public SelectClause? GetSelectClause();
         public FromClause InnerJoin(ISQLModel toTable);
         public FromClause InnerJoin(string toTable, string commonKey);
         public FromClause InnerJoin(string fromTable, string toTable, string commonKey);
@@ -178,10 +159,12 @@ namespace Backend.Model
         public FromClause LeftJoin(string toTable, string commonKey);
         public FromClause LeftJoin(string fromTable, string toTable, string commonKey);
         public WhereClause Where();
-        public AbstractClause Limit(int index);
+        public FromClause Limit(int index = 1);
     }
     public interface IWhereClause : IQueryClause
     {
+        public WhereClause OpenBracket();
+        public WhereClause CloseBracket();
         public WhereClause In(string field, params string[] values);
         public WhereClause Between(string field, string value1, string value2);
         public WhereClause EqualsTo(string field, string value);
@@ -195,18 +178,20 @@ namespace Backend.Model
         public WhereClause OR();
         public WhereClause AND();
         public WhereClause NOT();
-        public AbstractClause Limit(int index);
+        public WhereClause Limit(int index = 1);
+        public SelectClause? GetSelectClause();
+        public FromClause? GetFromClause();
     }
     public class WhereClause : AbstractClause, IWhereClause
     {
         public WhereClause(IQueryClause clause, ISQLModel model) : base(model)
         {
-            _clause = clause;
+            PreviousClause = clause;
             _bits.Add("WHERE");
         }
         public WhereClause(ISQLModel model) : base(model)
         {
-            _clause = new SelectClause(model).SelectAll().From();
+            PreviousClause = new SelectClause(model).SelectAll().From();
             _bits.Add("WHERE");
         }
         public WhereClause Between(string field, string value1, string value2)
@@ -251,7 +236,12 @@ namespace Backend.Model
             _bits.Add($"{field} {oprt} {value}");
             return this;
         }
-        public new WhereClause Limit(int index) => (WhereClause)base.Limit(index);
+        public WhereClause Limit(int index = 1) 
+        {
+            _bits.Add($"LIMIT {index}");
+            return this;
+        }
+
         private WhereClause LogicalOperator(string oprt)
         {
             _bits.Add(oprt);
@@ -260,21 +250,42 @@ namespace Backend.Model
         public WhereClause OR() => LogicalOperator("OR");
         public WhereClause AND() => LogicalOperator("AND");
         public WhereClause NOT() => LogicalOperator("NOT");
-        public new WhereClause OpenBracket() => (WhereClause)base.OpenBracket();
-        public new WhereClause CloseBracket() => (WhereClause)base.CloseBracket();
+
+        public WhereClause OpenBracket()
+        {
+            _bits.Add("(");
+            return this;
+        }
+        public WhereClause CloseBracket()
+        {
+            _bits.Add(")");
+            return this;
+        }
+
+        public FromClause? GetFromClause() 
+        {
+            if (PreviousClause is FromClause from) return from;
+            return null;
+        }
+
+        public SelectClause? GetSelectClause()
+        {
+            if (PreviousClause is SelectClause select) return select;
+            return GetFromClause()?.GetSelectClause();
+        }
 
     }
     public class FromClause : AbstractClause, IFromClause
     {
         public FromClause(ISelectClause clause, ISQLModel model) : base(model)
         {
-            _clause = clause;
+            PreviousClause = clause;
             _bits.Add("FROM");
             _bits.Add(TableName);
         }
         public FromClause(ISQLModel model) : base(model)
         {
-            _clause = new SelectClause(model).SelectAll();
+            PreviousClause = new SelectClause(model).SelectAll();
             _bits.Add("FROM");
             _bits.Add(TableName);
         }
@@ -347,13 +358,29 @@ namespace Backend.Model
         #endregion
 
         public WhereClause Where() => new(this, _model);
-        public new FromClause OpenBracket()
+
+        public FromClause CloseBracket()
+        {
+            _bits.Add(")");
+            return this;
+        }
+        public FromClause OpenBracket()
         {
             _bits.Insert(1, "(");
             return this;
         }
-        public new FromClause CloseBracket() => (FromClause)base.CloseBracket();
-        public new FromClause Limit(int index) => (FromClause)base.Limit(index);
+        public FromClause Limit(int index = 1) 
+        {
+            _bits.Add($"LIMIT {index}");
+            return this;
+        }
+
+        public SelectClause? GetSelectClause()
+        {
+            if (PreviousClause is SelectClause select) return select;
+            return null;
+        }
+
     }
     public class SelectClause : AbstractClause, ISelectClause
     {
@@ -375,7 +402,7 @@ namespace Backend.Model
             return this;
         }
 
-        public SelectClause Distinct() 
+        public SelectClause Distinct()
         {
             _bits.Add("DISTINCT");
             return this;
@@ -421,15 +448,5 @@ namespace Backend.Model
             return sb.ToString();
         }
 
-        public new SelectClause OpenBracket() => (SelectClause)base.OpenBracket();
-        public new SelectClause CloseBracket() => (SelectClause)base.CloseBracket();
-
-        /// <summary>
-        /// Cannot use Limit in Select Clause.
-        /// </summary>
-        public override AbstractClause Limit(int limit = 1)
-        {
-            throw new NotImplementedException("Limit should only be used in FROM and WHERE Clauses");
-        }
     }
 }
