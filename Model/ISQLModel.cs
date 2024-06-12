@@ -12,9 +12,9 @@ namespace Backend.Model
     {
         public bool PropertyExists(string properyName);
         public object? GetPropertyValue(string properyName); 
-        public IEnumerable<PropertyInfo> GetProperties();
-        public IEnumerable<string> GetEntityFields();
-        public IEnumerable<ITableField> GetAllTableFields();
+        public IEnumerable<PropertyInfo> GetPropertiesInfo();
+        public IEnumerable<string> GetEntityFieldNames();
+        public IEnumerable<ITableField> GetEntityFields();
 
         /// <summary>
         /// This method allows the creation of an object by reading the DataReader.
@@ -47,7 +47,7 @@ namespace Backend.Model
         /// This method is used by the <see cref="QueryBuilder"/> class to automatically generate queries through Reflection.
         /// </summary>
         /// <returns>Returns an IEnumerable containing all properties marked with the [<see cref="FK"/>] attribute.</returns>
-        public IEnumerable<ITableField> GetTableFKs();
+        public IEnumerable<ITableField> GetForeignKeys();
 
         /// <summary>
         /// This method is used to identify which Property serves as Primary Key.<para/>
@@ -55,7 +55,7 @@ namespace Backend.Model
         /// It is also used by the <see cref="IsNewRecord"/> method.
         /// </summary>
         /// <returns>Returns the property marked with the [<see cref="PK"/>] attribute.</returns>
-        public TableField? GetTablePK();
+        public TableField? GetPrimaryKey();
 
         /// <summary>
         /// This method is used by the <see cref="QueryBuilder"/> class to automatically generate queries through Reflection.

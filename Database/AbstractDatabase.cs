@@ -227,7 +227,7 @@ namespace Backend.Database
                     {
                         transaction.Commit();
                         if (lastID != null)
-                            Model?.GetTablePK()?.SetValue(lastID);
+                            Model?.GetPrimaryKey()?.SetValue(lastID);
                         UpdateMasterSource(crud);
                     }
                     catch (Exception ex)

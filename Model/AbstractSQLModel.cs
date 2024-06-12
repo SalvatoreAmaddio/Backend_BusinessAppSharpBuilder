@@ -22,9 +22,7 @@ namespace Backend.Model
         #endregion
 
         public AbstractSQLModel() => _ = new QueryBuilder(this);
-
         public abstract ISQLModel Read(DbDataReader reader);
-
         public bool PropertyExists(string properyName)
         {
             Type type = GetType();
@@ -35,55 +33,41 @@ namespace Backend.Model
             Type type = GetType();
             PropertyInfo[] props = type.GetProperties();
             foreach (PropertyInfo prop in props) 
-            {
                 if (prop.Name.Equals(properyName)) return prop.GetValue(this);
-            }
             return null;
         }
-
-        public IEnumerable<PropertyInfo> GetProperties()
+        public TableField? GetPrimaryKey()
         {
-            Type type = GetType();
-            PropertyInfo[] props = type.GetProperties();
-            foreach (PropertyInfo prop in props)
-                yield return prop;
-        }
-
-        public IEnumerable<ITableField> GetTableFields() => GetTableFieldsAs<Field>();
-        public TableField? GetTablePK() 
-        {
-            PropertyInfo? prop = GetType().GetProperties().Where(s => s.GetCustomAttribute<PK>() != null).FirstOrDefault();
+            PropertyInfo? prop = _getProperties().Where(s => s.GetCustomAttribute<PK>() != null).FirstOrDefault();
             if (prop == null) return null;
             AbstractField? field = prop.GetCustomAttribute<PK>();
             return (field != null) ? new TableField(field, prop, this) : null;
         }
-
-        public IEnumerable<ITableField> GetTableFKs() => GetTableFieldsAs<FK>();
-
         public string GetTableName()
         {
             Table? tableAttr = GetType().GetCustomAttribute<Table>();
             return $"{tableAttr}";
         }
-
-        private IEnumerable<PropertyInfo> GetMandatoryFields() 
+        public IEnumerable<PropertyInfo> GetPropertiesInfo()
         {
-            Type type = GetType();
-            PropertyInfo[] props = type.GetProperties();
-
-            foreach (PropertyInfo prop in props)
+            foreach (PropertyInfo prop in _getProperties())
+                yield return prop;
+        }
+        public IEnumerable<ITableField> GetTableFields() => _getTableFieldsAs<Field>();
+        public IEnumerable<ITableField> GetForeignKeys() => _getTableFieldsAs<FK>();
+        private IEnumerable<PropertyInfo> GetMandatoryFields()
+        {
+            foreach (PropertyInfo prop in _getProperties())
             {
                 var field = prop.GetCustomAttribute<Mandatory>();
                 if (field != null)
                     yield return prop;
             }
         }
-
-        public IEnumerable<string> GetEntityFields() 
+        protected PropertyInfo[] _getProperties() => GetType().GetProperties();
+        public IEnumerable<string> GetEntityFieldNames()
         {
-            Type type = GetType();
-            PropertyInfo[] props = type.GetProperties();
-            foreach (PropertyInfo prop in props)
+            foreach (PropertyInfo prop in _getProperties())
             {
                 AbstractField? field = prop.GetCustomAttribute<AbstractField>();
                 if (field != null)
@@ -94,12 +78,9 @@ namespace Backend.Model
                 }
             }
         }
-
-        public IEnumerable<ITableField> GetAllTableFields()
+        public IEnumerable<ITableField> GetEntityFields()
         {
-            Type type = GetType();
-            PropertyInfo[] props = type.GetProperties();
-            foreach (PropertyInfo prop in props)
+            foreach (PropertyInfo prop in _getProperties())
             {
                 AbstractField? field = prop.GetCustomAttribute<AbstractField>();
                 if (field != null)
@@ -112,13 +93,10 @@ namespace Backend.Model
                 }
             }
         }
-
-        private IEnumerable<ITableField> GetTableFieldsAs<F>() where F : AbstractField
+        private IEnumerable<ITableField> _getTableFieldsAs<F>() where F : AbstractField
         {
-            Type type = GetType();
-            PropertyInfo[] props = type.GetProperties();
             bool isForeignKey = typeof(F) == typeof(FK);
-            foreach (PropertyInfo prop in props)
+            foreach (PropertyInfo prop in _getProperties())
             {
                 AbstractField? field = prop.GetCustomAttribute<F>();
                 if (field != null) 
@@ -129,27 +107,27 @@ namespace Backend.Model
             }
         }
 
-        public bool IsNewRecord() => (long?)GetTablePK()?.GetValue() == 0;
+        public bool IsNewRecord() => (long?)GetPrimaryKey()?.GetValue() == 0;
         
         public override bool Equals(object? obj)
         {
             if (obj is not AbstractSQLModel other) return false;
-            long? value = (long?)(GetTablePK()?.GetValue());
-            long? value2 = (long?)(other?.GetTablePK()?.GetValue());
+            long? value = (long?)(GetPrimaryKey()?.GetValue());
+            long? value2 = (long?)(other?.GetPrimaryKey()?.GetValue());
             if (value == null) return false;
             return value == value2;
         }
 
-        public override int GetHashCode() => HashCode.Combine(GetTablePK()?.GetValue());
+        public override int GetHashCode() => HashCode.Combine(GetPrimaryKey()?.GetValue());
 
         public virtual void SetParameters(List<QueryParameter>? parameters) 
         {
-            parameters?.Add(new(GetTablePK()?.Name!, GetTablePK()?.GetValue()));
+            parameters?.Add(new(GetPrimaryKey()?.Name!, GetPrimaryKey()?.GetValue()));
 
             foreach(ITableField field in GetTableFields()) 
                 parameters?.Add(new(field.Name, field.GetValue()));
 
-            foreach (ITableField field in GetTableFKs()) 
+            foreach (ITableField field in GetForeignKeys()) 
             {
                 IFKField fk_field = (IFKField)field;
                 parameters?.Add(new(fk_field.Name, fk_field.PK?.GetValue()));

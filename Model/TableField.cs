@@ -1,16 +1,8 @@
 ﻿using System.Reflection;
+using Backend.Enums;
 
 namespace Backend.Model
 {
-    /// <summary>
-    /// FieldType Enum
-    /// </summary>
-    public enum FieldType
-    { 
-        PK = 0,
-        Field = 1,
-        FK = 2
-    }
 
     /// <summary>
     /// This interface represents fields and methods that a Table Field object must have.
@@ -75,7 +67,7 @@ namespace Backend.Model
     /// This class is meant for Reflection Purpose. It encapsulates an <see cref="AbstractField"/>, a <see cref="PropertyInfo"/> and an <see cref="ISQLModel"/>.
     /// Thanks to this class, <see cref="AbstractSQLModel"/> can produce IEnumerables that are used by a <see cref="QueryBuilder"/> to produce default queries.
     /// <para/>
-    /// see also: <seealso cref="AbstractSQLModel.GetTableFields"/>, <seealso cref="AbstractSQLModel.GetTableFieldsAs{F}"/>, <seealso cref="AbstractSQLModel.GetTableFKs"/> and <seealso cref="AbstractSQLModel.GetTablePK()"/>.
+    /// see also: <seealso cref="AbstractSQLModel.GetTableFields"/>, <seealso cref="AbstractSQLModel._getTableFieldsAs{F}"/>, <seealso cref="AbstractSQLModel.GetForeignKeys"/> and <seealso cref="AbstractSQLModel.GetPrimaryKey()"/>.
     /// </summary>
     public class TableField(AbstractField field, PropertyInfo property, ISQLModel model) : ITableField
     {
@@ -129,7 +121,7 @@ namespace Backend.Model
             ISQLModel? fk_model = (ISQLModel?)GetValue();
             fk_model ??= (ISQLModel)Activator.CreateInstance(property.PropertyType)!;
             ClassName = property.PropertyType.Name;
-            PK = fk_model.GetTablePK() ?? throw new Exception("NO PK IN FK");
+            PK = fk_model.GetPrimaryKey() ?? throw new Exception("NO PK IN FK");
             Name = PK.Name;
         }
     }

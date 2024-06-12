@@ -66,7 +66,7 @@ namespace Backend.Office
             int column = 1;
             foreach (ISQLModel record in records) 
             {
-                foreach(ITableField tableField in record.GetAllTableFields()) 
+                foreach(ITableField tableField in record.GetEntityFields()) 
                 {
                     if (tableField is FKField fk) 
                     {

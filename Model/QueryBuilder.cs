@@ -24,8 +24,8 @@ namespace Backend.Model
             this.model = model;
             tableName = model.GetTableName();
             fields = model.GetTableFields();
-            fks = model.GetTableFKs();
-            pk = model.GetTablePK();
+            fks = model.GetForeignKeys();
+            pk = model.GetPrimaryKey();
             model.RecordCountQry = $"SELECT COUNT(*) FROM {tableName}";
             model.SelectQry = $"SELECT * FROM {tableName}";
             model.UpdateQry = BuildUpdateQuery();
@@ -102,7 +102,7 @@ namespace Backend.Model
         {
             _model = model;
             TableName = model.GetTableName();
-            TableKey = model?.GetTablePK()?.Name ?? throw new NullReferenceException("PK is null");
+            TableKey = model?.GetPrimaryKey()?.Name ?? throw new NullReferenceException("PK is null");
         }
         public void AddParameter(string placeholder, object? value) => _parameters.Add(new(placeholder, value));
         public List<QueryParameter> Params() => _parameters;
@@ -331,7 +331,7 @@ namespace Backend.Model
         /// <exception cref="Exception"></exception>
         private FromClause MakeJoin(string join, ISQLModel toTable)
         {
-            string commonKey = toTable?.GetTablePK()?.Name ?? throw new Exception("Null Reference");
+            string commonKey = toTable?.GetPrimaryKey()?.Name ?? throw new Exception("Null Reference");
             return MakeJoin(join, toTable.GetTableName(), commonKey);
         }
 
