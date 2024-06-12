@@ -1,6 +1,7 @@
 ﻿using Backend.Database;
 using Backend.Exceptions;
 using Backend.Model;
+using Backend.Enums;
 
 namespace Backend.Utils
 {

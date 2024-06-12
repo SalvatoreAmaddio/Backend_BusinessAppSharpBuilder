@@ -1,5 +1,5 @@
-﻿using Backend.Database;
-using System.Data.Common;
+﻿using System.Data.Common;
+using Backend.Enums;
 
 namespace Backend.Events
 {

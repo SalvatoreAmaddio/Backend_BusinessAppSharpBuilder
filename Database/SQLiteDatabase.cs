@@ -6,6 +6,7 @@ using System.Data;
 using System.Reflection;
 using Backend.Exceptions;
 using Backend.Events;
+using Backend.Enums;
 
 namespace Backend.Database
 {

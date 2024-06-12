@@ -2,6 +2,7 @@
 using Backend.Model;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Backend.Enums;
 
 namespace Backend.Utils
 {
