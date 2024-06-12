@@ -164,7 +164,7 @@ namespace Backend.Controller
 
         public virtual void Dispose()
         {
-            ((RecordSource)Source).Dispose();
+            Source.Dispose();
             GC.SuppressFinalize(this);
         }
 
