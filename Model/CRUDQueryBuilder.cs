@@ -193,6 +193,31 @@ namespace Backend.Model
             return sb.ToString();
         }
     }
+    public interface IGroupBy : IQueryClause 
+    {
+        public GroupByClause Fields(params string[] fields);
+    }
+
+    public class GroupByClause : AbstractClause, IGroupBy
+    {
+        public GroupByClause() { }
+        public GroupByClause(IQueryClause clause, ISQLModel model) : base(model)
+        {
+            PreviousClause = clause;
+            _bits.Add("GROUP BY");
+        }
+        
+        public GroupByClause Fields(params string[] fields) 
+        {
+            foreach(string field in fields) 
+            {
+                _bits.Add(field);
+                _bits.Add(",");
+            }
+            RemoveLastChange();
+            return this;
+        }
+    }
     public class WhereClause : AbstractClause, IWhereClause
     {
         public WhereClause() { }
