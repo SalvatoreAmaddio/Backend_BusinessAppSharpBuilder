@@ -29,7 +29,6 @@ namespace Backend.Model
             InsertQry = this.Insert().AllFields().Values().Statement();
             UpdateQry = this.Update().AllFields().Where().This().Statement();
             DeleteQry = this.Delete().From().Where().This().Statement();
-           // _ = new CRUDQueryBuilder(this);
         }
 
         public abstract ISQLModel Read(DbDataReader reader);
