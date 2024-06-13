@@ -4,81 +4,6 @@ using System.Text;
 
 namespace Backend.Model
 {
-    /// <summary>
-    /// This class build default queries for <see cref="AbstractSQLModel"/> objects.
-    /// </summary>
-    public class CRUDQueryBuilder
-    {
-        private readonly ISQLModel model;
-        private readonly string tableName;
-        private readonly IEnumerable<ITableField> fields;
-        private readonly IEnumerable<ITableField> fks;
-        private readonly TableField? pk;
-
-        /// <summary>
-        /// Class Constructor
-        /// </summary>
-        /// <param name="model">Any object that implements a ISQLModel interface</param>
-        public CRUDQueryBuilder(ISQLModel model)
-        {
-            this.model = model;
-            tableName = model.GetTableName();
-            fields = model.GetTableFields();
-            fks = model.GetForeignKeys();
-            pk = model.GetPrimaryKey();
-            model.UpdateQry = BuildUpdateQuery();
-            model.InsertQry = BuildInsertQuery();
-            model.DeleteQry = $"DELETE FROM {tableName} WHERE {pk?.Name}=@{pk?.Name};";
-        }
-
-        private string BuildUpdateQuery()
-        {
-            StringBuilder sb = new();
-            sb.Append($"UPDATE {tableName} SET ");
-
-            foreach (ITableField field in fields)
-                sb.Append($"{field.Name} = @{field.Name}, ");
-
-            foreach (ITableField field in fks)
-                sb.Append($"{field.Name} = @{field.Name}, ");
-
-            sb.Remove(sb.Length - 1, 1);
-            sb.Remove(sb.Length - 1, 1);
-
-            sb.Append($" WHERE {pk?.Name} = @{pk?.Name};");
-            return sb.ToString();
-        }
-
-        private string BuildInsertQuery()
-        {
-            StringBuilder sb = new();
-            sb.Append($"INSERT INTO {tableName} (");
-
-            foreach (ITableField field in fields)
-                sb.Append($"{field.Name}, ");
-
-            foreach (ITableField field in fks)
-                sb.Append($"{field.Name}, ");
-
-            sb.Remove(sb.Length - 1, 1);
-            sb.Remove(sb.Length - 1, 1);
-
-            sb.Append($") VALUES (");
-
-            foreach (ITableField field in fields)
-                sb.Append($"@{field.Name}, ");
-
-            foreach (ITableField field in fks)
-                sb.Append($"@{field.Name}, ");
-
-            sb.Remove(sb.Length - 1, 1);
-            sb.Remove(sb.Length - 1, 1);
-
-            sb.Append($");");
-            return sb.ToString();
-        }
-    }
-
     public interface IQueryClause : IDisposable
     {
         public List<QueryParameter> Params();
@@ -91,7 +16,6 @@ namespace Backend.Model
         public T OpenClause<T>() where T : class, IQueryClause, new();
         public void Join(AbstractClause clause);
     }
-
     public abstract class AbstractClause : IQueryClause
     {
         private readonly List<QueryParameter> _parameters = [];
@@ -113,7 +37,7 @@ namespace Backend.Model
         public bool HasWhereConditions()
         {
             bool found = _bits.Any(s => s.Equals("WHERE"));
-            if (!found) 
+            if (!found)
             {
                 if (PreviousClause == null) return false;
                 return PreviousClause.HasWhereConditions();
@@ -160,7 +84,7 @@ namespace Backend.Model
             return PreviousClause.GetClause<T>();
         }
 
-        public T OpenClause<T>() where T : class, IQueryClause, new() 
+        public T OpenClause<T>() where T : class, IQueryClause, new()
         {
             Type t = typeof(T);
             if (t.IsAssignableFrom(typeof(SelectClause))) throw new NotSupportedException("Cannot be Select");
@@ -171,16 +95,15 @@ namespace Backend.Model
                 throw new InvalidOperationException($"Type {t.FullName} does not have a constructor that takes a parameter of type {_model.GetType().FullName}");
             }
 
-            return (T)constructor.Invoke([PreviousClause,_model]);
+            return (T)constructor.Invoke([PreviousClause, _model]);
         }
 
-        public void Join(AbstractClause clause) 
+        public void Join(AbstractClause clause)
         {
             clause.PreviousClause = this.PreviousClause;
             this.PreviousClause = clause;
         }
     }
-
     public interface ISelectClause : IQueryClause
     {
         public SelectClause Sum(string field);
@@ -210,6 +133,7 @@ namespace Backend.Model
     }
     public interface IWhereClause : IQueryClause
     {
+        public WhereClause This();
         public OrderByClause OrderBy();
         public WhereClause OpenBracket();
         public WhereClause CloseBracket();
@@ -232,7 +156,7 @@ namespace Backend.Model
     {
         public OrderByClause Field(string field);
     }
-    public class OrderByClause : AbstractClause, IOrderByClause 
+    public class OrderByClause : AbstractClause, IOrderByClause
     {
         public OrderByClause() { }
         public OrderByClause(IQueryClause clause, ISQLModel model) : base(model)
@@ -280,6 +204,11 @@ namespace Backend.Model
             PreviousClause = new SelectClause(model).SelectAll().From();
             _bits.Add("WHERE");
         }
+
+        public WhereClause This() 
+        {
+            return this.EqualsTo(TableKey, $"@{TableKey}");
+        }
         public WhereClause Between(string field, string value1, string value2)
         {
             _bits.Add($"{field} BETWEEN {value1} AND {value2}");
@@ -322,7 +251,7 @@ namespace Backend.Model
             _bits.Add($"{field} {oprt} {value}");
             return this;
         }
-        public WhereClause Limit(int index = 1) 
+        public WhereClause Limit(int index = 1)
         {
             _bits.Add($"LIMIT {index}");
             return this;
@@ -351,7 +280,7 @@ namespace Backend.Model
     public class FromClause : AbstractClause, IFromClause
     {
         public FromClause() { }
-        public FromClause(ISelectClause clause, ISQLModel model) : base(model)
+        public FromClause(IQueryClause clause, ISQLModel model) : base(model)
         {
             PreviousClause = clause;
             _bits.Add("FROM");
@@ -432,7 +361,6 @@ namespace Backend.Model
         #endregion
 
         public WhereClause Where() => new(this, _model);
-
         public FromClause CloseBracket()
         {
             _bits.Add(")");
@@ -443,12 +371,11 @@ namespace Backend.Model
             _bits.Insert(1, "(");
             return this;
         }
-        public FromClause Limit(int index = 1) 
+        public FromClause Limit(int index = 1)
         {
             _bits.Add($"LIMIT {index}");
             return this;
         }
-
         public OrderByClause OrderBy() => new(this, _model);
 
     }
@@ -456,6 +383,12 @@ namespace Backend.Model
     {
         public SelectClause() { }
         public SelectClause(ISQLModel model) : base(model) => _bits.Add("SELECT");
+
+        public SelectClause(IInsertClause clause, ISQLModel model) : this(model)
+        {
+            PreviousClause = clause;
+        }
+
         public SelectClause SelectAll(string? tableName = null)
         {
             if (string.IsNullOrEmpty(tableName))
@@ -496,7 +429,9 @@ namespace Backend.Model
         }
         public override string Statement()
         {
+            string? s = PreviousClause?.Statement();
             sb.Clear();
+            sb.Append(s);
             bool notFirstIndex = false;
             bool notLastIndex = false;
             for (int i = 0; i <= _bits.Count - 1; i++)
@@ -511,14 +446,136 @@ namespace Backend.Model
             return sb.ToString();
         }
     }
-
-    public interface IInsertClause : IQueryClause { }
+    public interface IInsertClause : IQueryClause
+    {
+        public InsertClause AllFields();
+        public InsertClause Fields(params string[] fields);
+        public InsertClause Values(bool includeFields = true);
+        public InsertClause RowValues(params string[] fields);
+        public SelectClause Select();
+    }
     public class InsertClause : AbstractClause, IInsertClause
     {
         public InsertClause() { }
         public InsertClause(ISQLModel model) : base(model) => _bits.Add($"INSERT INTO {model.GetTableName()}");
 
+        public InsertClause AllFields()
+        {
+            _bits.Add("(");
+            string pkName = _model.GetPrimaryKey()?.Name ?? "";
 
+            foreach (string fieldName in _model.GetEntityFieldNames())
+            {
+                if (pkName.Equals(fieldName)) continue;
+                _bits.Add(fieldName);
+                _bits.Add(",");
+            }
+            RemoveLastChange();
+            _bits.Add(")");
+            return this;
+        }
 
+        public InsertClause Fields(params string[] fields)
+        {
+            _bits.Add("(");
+            foreach (string fieldName in fields)
+            {
+                _bits.Add(fieldName);
+                _bits.Add(",");
+            }
+            _bits.Add(")");
+            return this;
+        }
+
+        public InsertClause Values(bool includeFields = true)
+        {
+            IEnumerable<string>? fields = null;
+
+            if (includeFields)
+            {
+                int index = _bits.IndexOf("(") + 1;
+                fields = _bits.Skip(index).ToList();
+                fields = fields.Take(fields.Count() - 1);
+            }
+
+            if (fields == null)
+            {
+                _bits.Add("VALUES");
+                return this;
+            }
+            else _bits.Add("VALUES (");
+
+            foreach (string fieldName in fields)
+            {
+                if (fieldName.Equals(","))
+                {
+                    _bits.Add(fieldName);
+                }
+                else _bits.Add($"@{fieldName}");
+            }
+            _bits.Add(")");
+            return this;
+        }
+
+        public InsertClause RowValues(params string[] fields)
+        {
+            foreach (string fieldName in fields)
+            {
+                _bits.Add($"@{fieldName}");
+                _bits.Add(",");
+            }
+            _bits.Add("),");
+            return this;
+        }
+
+        public override string Statement()
+        {
+            int index = _bits.LastIndexOf("),");
+            if (index >= 0)
+                _bits[index] = ")";
+            return base.Statement();
+        }
+
+        public SelectClause Select() => new(this, _model);
+    }
+    public interface IUpdateClause : IQueryClause
+    {
+        public UpdateClause AllFields();
+        public WhereClause Where();
+    }
+    public class UpdateClause : AbstractClause, IUpdateClause
+    {
+        public UpdateClause() { }
+        public UpdateClause(ISQLModel model) : base(model) => _bits.Add($"UPDATE {model.GetTableName()}");
+
+        public UpdateClause AllFields() 
+        {
+            string pkName = _model.GetPrimaryKey()?.Name ?? "";
+            _bits.Add("SET");
+
+            foreach (string fieldName in _model.GetEntityFieldNames())
+            {
+                if (pkName.Equals(fieldName)) continue;
+                _bits.Add($"{fieldName} = @{fieldName}");
+                _bits.Add(",");
+            }
+            RemoveLastChange();
+            return this;
+        }
+
+        public WhereClause Where() => new(this, _model);
+
+    }
+    public interface IDeleteClause 
+    {
+        public FromClause From();
+        public WhereClause Where();
+    }
+    public class DeleteClause : AbstractClause, IDeleteClause
+    {
+        public DeleteClause() { }
+        public DeleteClause(ISQLModel model) : base(model) => _bits.Add($"DELETE");        
+        public FromClause From() => new(this, _model);
+        public WhereClause Where() => new(this, _model);
     }
 }

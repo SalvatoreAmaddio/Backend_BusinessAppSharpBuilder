@@ -37,28 +37,28 @@ namespace Backend.Model
 
         /// <summary>
         /// This method is used to identify which Properties serve as Table Fields such as TEXT, DATE, INT, and so on.<para/>
-        /// This method is used by the <see cref="CRUDQueryBuilder"/> class to automatically generate queries through Reflection.
+        /// This method is used to auto-generate queries through Reflection.
         /// </summary>
         /// <returns>Returns an IEnumerable containing all properties marked with the [<see cref="Field"/>] attribute.</returns>
         public IEnumerable<ITableField> GetTableFields();
 
         /// <summary>
         /// This method is used to identify which Properties serve as Foreign Keys.<para/>
-        /// This method is used by the <see cref="CRUDQueryBuilder"/> class to automatically generate queries through Reflection.
+        /// This method is used to auto-generate queries through Reflection.
         /// </summary>
         /// <returns>Returns an IEnumerable containing all properties marked with the [<see cref="FK"/>] attribute.</returns>
         public IEnumerable<ITableField> GetForeignKeys();
 
         /// <summary>
         /// This method is used to identify which Property serves as Primary Key.<para/>
-        /// This method is used by the <see cref="CRUDQueryBuilder"/> class to automatically generate queries through Reflection.<para/>
+        /// This method is used to auto-generate queries through Reflection.<para/>
         /// It is also used by the <see cref="IsNewRecord"/> method.
         /// </summary>
         /// <returns>Returns the property marked with the [<see cref="PK"/>] attribute.</returns>
         public TableField? GetPrimaryKey();
 
         /// <summary>
-        /// This method is used by the <see cref="CRUDQueryBuilder"/> class to automatically generate queries through Reflection.
+        /// This method is used to auto-generate queries through Reflection.
         /// </summary>
         /// <returns>A string telling which Table this class represent in a Database</returns>
         public string GetTableName();
@@ -96,7 +96,7 @@ namespace Backend.Model
         /// <summary>
         /// Gets and Sets the select statement to count all rows in a table.
         /// <para/>
-        /// This property comes with a default string built by the <see cref="CRUDQueryBuilder"/> object
+        /// This property comes with a default auto-generate query
         /// </summary>
         /// <value>A string.</value>
         public string RecordCountQry { get; set; }
@@ -104,7 +104,7 @@ namespace Backend.Model
         /// <summary>
         /// Gets and Sets the Select Statement used by the <see cref="AbstractDatabase"/> class.
         /// <para/>
-        /// This property comes with a default string built by the <see cref="CRUDQueryBuilder"/> object
+        /// This property comes with a default auto-generated query
         /// </summary>
         /// <value>A string representing the Select Statement.</value>
         public string SelectQry { get; set; }
@@ -112,7 +112,7 @@ namespace Backend.Model
         /// <summary>
         /// Gets and Sets the Update Statement used by the <see cref="AbstractDatabase"/> class.
         /// <para/>
-        /// This property comes with a default string built by the <see cref="CRUDQueryBuilder"/> object
+        /// This property comes with a default auto-generated query.
         /// </summary>
         /// <value>A string representing the Update Statement.</value>
         public string UpdateQry { get; set; }
@@ -120,7 +120,7 @@ namespace Backend.Model
         /// <summary>
         /// Gets and Sets the Delete Statement used by the <see cref="AbstractDatabase"/> class.
         /// <para/>
-        /// This property comes with a default string built by the <see cref="CRUDQueryBuilder"/> object
+        /// This property comes with a default auto-generated query.
         /// </summary>
         /// <value>A string representing the Delete Statement.</value>
         public string DeleteQry { get; set; }
@@ -128,7 +128,7 @@ namespace Backend.Model
         /// <summary>
         /// Gets and Sets the Insert Statement used by the <see cref="AbstractDatabase"/> class.
         /// <para/>
-        /// This property comes with a default string built by the <see cref="CRUDQueryBuilder"/> object
+        /// This property comes with a auto-generated query.
         /// </summary>
         /// <value>A string representing the Insert Statement.</value>
         public string InsertQry { get; set; }

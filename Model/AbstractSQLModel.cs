@@ -26,7 +26,10 @@ namespace Backend.Model
         {
             RecordCountQry = this.CountAll().From().Statement();
             SelectQry = this.SelectAll().From().Statement();
-            _ = new CRUDQueryBuilder(this);
+            InsertQry = this.Insert().AllFields().Values().Statement();
+            UpdateQry = this.Update().AllFields().Where().This().Statement();
+            DeleteQry = this.Delete().From().Where().This().Statement();
+           // _ = new CRUDQueryBuilder(this);
         }
 
         public abstract ISQLModel Read(DbDataReader reader);

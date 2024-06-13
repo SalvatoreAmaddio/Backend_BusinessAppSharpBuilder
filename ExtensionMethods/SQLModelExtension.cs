@@ -11,5 +11,10 @@ namespace Backend.ExtensionMethods
         public static SelectClause CountAll(this ISQLModel model) => new SelectClause(model).CountAll();
         public static FromClause From(this ISQLModel model) => new(model);
         public static WhereClause Where(this ISQLModel model) => new(model);
+        public static InsertClause Insert(this ISQLModel model) => new(model);
+
+        public static UpdateClause Update(this ISQLModel model) => new(model);
+
+        public static DeleteClause Delete(this ISQLModel model) => new(model);
     }
 }
