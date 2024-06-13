@@ -2,7 +2,7 @@
 {
     /// <summary>
     /// This attribute is used to associate a class extending <see cref="AbstractSQLModel"/> to a Table's Name in your Database.
-    /// This is pivotal for <see cref="QueryBuilder"/> to produce default queries.
+    /// This is pivotal for <see cref="CRUDQueryBuilder"/> to produce default queries.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public class Table(string name) : Attribute 
@@ -25,7 +25,7 @@
 
     /// <summary>
     /// This attribute is used to associate a <see cref="AbstractSQLModel"/>'s property to a Field in your table to a Table in your Database.
-    /// This is pivotal for <see cref="QueryBuilder"/> to produce default queries.
+    /// This is pivotal for <see cref="CRUDQueryBuilder"/> to produce default queries.
     /// </summary>
     public class Field : AbstractField
     {
@@ -33,7 +33,7 @@
 
     /// <summary>
     /// This attribute is used to associate one <see cref="AbstractSQLModel"/>'s property to the Primary Key in your table to a Table in your Database.
-    /// This is pivotal for <see cref="QueryBuilder"/> to produce default queries.
+    /// This is pivotal for <see cref="CRUDQueryBuilder"/> to produce default queries.
     /// <para/>
     /// N.B: Only one property can have this attribute.
     /// </summary>
@@ -43,7 +43,7 @@
 
     /// <summary>
     /// This attribute is used to associate a <see cref="AbstractSQLModel"/>'s property to a Foreign Key in your table to a Table in your Database.
-    /// This is pivotal for <see cref="QueryBuilder"/> to produce default queries.
+    /// This is pivotal for <see cref="CRUDQueryBuilder"/> to produce default queries.
     /// </summary>
     public class FK : AbstractField
     {

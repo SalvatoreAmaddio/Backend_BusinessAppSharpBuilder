@@ -65,7 +65,7 @@ namespace Backend.Model
 
     /// <summary>
     /// This class is meant for Reflection Purpose. It encapsulates an <see cref="AbstractField"/>, a <see cref="PropertyInfo"/> and an <see cref="ISQLModel"/>.
-    /// Thanks to this class, <see cref="AbstractSQLModel"/> can produce IEnumerables that are used by a <see cref="QueryBuilder"/> to produce default queries.
+    /// Thanks to this class, <see cref="AbstractSQLModel"/> can produce IEnumerables that are used by a <see cref="CRUDQueryBuilder"/> to produce default queries.
     /// <para/>
     /// see also: <seealso cref="AbstractSQLModel.GetTableFields"/>, <seealso cref="AbstractSQLModel._getTableFieldsAs{F}"/>, <seealso cref="AbstractSQLModel.GetForeignKeys"/> and <seealso cref="AbstractSQLModel.GetPrimaryKey()"/>.
     /// </summary>

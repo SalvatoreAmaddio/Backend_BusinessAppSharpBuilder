@@ -1,4 +1,6 @@
 ﻿using Backend.Database;
+using Backend.ExtensionMethods;
+using Microsoft.Office.Interop.Excel;
 using System.Data.Common;
 using System.Reflection;
 using System.Text;
@@ -21,7 +23,13 @@ namespace Backend.Model
         public string RecordCountQry { get; set; } = string.Empty;
         #endregion
 
-        public AbstractSQLModel() => _ = new QueryBuilder(this);
+        public AbstractSQLModel() 
+        {
+            RecordCountQry = this.CountAll().From().Statement();
+            SelectQry = this.SelectAll().From().Statement();
+            _ = new CRUDQueryBuilder(this);
+        }
+
         public abstract ISQLModel Read(DbDataReader reader);
         public bool PropertyExists(string properyName)
         {

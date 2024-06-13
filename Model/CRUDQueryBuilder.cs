@@ -1,5 +1,4 @@
 ﻿using Backend.Database;
-using Microsoft.Office.Interop.Excel;
 using System.Reflection;
 using System.Text;
 
@@ -8,7 +7,7 @@ namespace Backend.Model
     /// <summary>
     /// This class build default queries for <see cref="AbstractSQLModel"/> objects.
     /// </summary>
-    public class QueryBuilder
+    public class CRUDQueryBuilder
     {
         private readonly ISQLModel model;
         private readonly string tableName;
@@ -20,15 +19,13 @@ namespace Backend.Model
         /// Class Constructor
         /// </summary>
         /// <param name="model">Any object that implements a ISQLModel interface</param>
-        public QueryBuilder(ISQLModel model)
+        public CRUDQueryBuilder(ISQLModel model)
         {
             this.model = model;
             tableName = model.GetTableName();
             fields = model.GetTableFields();
             fks = model.GetForeignKeys();
             pk = model.GetPrimaryKey();
-            model.RecordCountQry = $"SELECT COUNT(*) FROM {tableName}";
-            model.SelectQry = $"SELECT * FROM {tableName}";
             model.UpdateQry = BuildUpdateQuery();
             model.InsertQry = BuildInsertQuery();
             model.DeleteQry = $"DELETE FROM {tableName} WHERE {pk?.Name}=@{pk?.Name};";
