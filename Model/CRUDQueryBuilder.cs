@@ -25,7 +25,9 @@ namespace Backend.Model
         protected string TableName { get; }
         protected string TableKey { get; }
         public IQueryClause? PreviousClause { get; protected set; }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public AbstractClause() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public AbstractClause(ISQLModel model)
         {
             _model = model;
