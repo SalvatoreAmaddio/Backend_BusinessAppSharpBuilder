@@ -105,55 +105,64 @@ namespace Backend.Model
             clause.PreviousClause = this.PreviousClause;
             this.PreviousClause = clause;
         }
+
     }
-    public interface ISelectClause : IQueryClause
+    public abstract class AbstractConditionalClause : AbstractClause, IQueryClause 
     {
-        public SelectClause Sum(string field);
-        public SelectClause CountAll();
-        public SelectClause SelectAll(string? tableName = null);
-        public SelectClause Select(params string[] fields);
-        public FromClause From();
-        public WhereClause Where();
-        public SelectClause Distinct();
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public AbstractConditionalClause() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public AbstractConditionalClause(ISQLModel model) : base(model) { }
+
+        protected AbstractConditionalClause EqualsTo(string field, string value) => Condition(field, value, "=");
+        protected AbstractConditionalClause NotEqualsTo(string field, string value) => Condition(field, value, "!=");
+        protected AbstractConditionalClause GreaterThan(string field, string value) => Condition(field, value, ">");
+        protected AbstractConditionalClause GreaterEqualTo(string field, string value) => Condition(field, value, ">=");
+        protected AbstractConditionalClause SmallerThan(string field, string value) => Condition(field, value, "<");
+        protected AbstractConditionalClause SmallerEqualTo(string field, string value) => Condition(field, value, "<=");
+        protected AbstractConditionalClause IsNull(string field)
+        {
+            _bits.Add($"{field} IS NULL");
+            return this;
+        }
+        protected AbstractConditionalClause IsNotNull(string field)
+        {
+            _bits.Add($"{field} IS NOT NULL");
+            return this;
+        }
+        protected AbstractConditionalClause Condition(string field, string value, string oprt)
+        {
+            _bits.Add($"{field} {oprt} {value}");
+            return this;
+        }
+        protected AbstractConditionalClause Limit(int index = 1)
+        {
+            _bits.Add($"LIMIT {index}");
+            return this;
+        }
+        protected AbstractConditionalClause LogicalOperator(string oprt)
+        {
+            _bits.Add(oprt);
+            return this;
+        }
+        protected AbstractConditionalClause OR() => LogicalOperator("OR");
+        protected AbstractConditionalClause AND() => LogicalOperator("AND");
+        protected AbstractConditionalClause NOT() => LogicalOperator("NOT");
+        protected AbstractConditionalClause OpenBracket()
+        {
+            _bits.Add("(");
+            return this;
+        }
+        protected AbstractConditionalClause CloseBracket()
+        {
+            _bits.Add(")");
+            return this;
+        }
+        public OrderByClause OrderBy() => new(this, _model);
+
     }
-    public interface IFromClause : IQueryClause
-    {
-        public WhereClause Where();
-        public OrderByClause OrderBy();
-        public FromClause OpenBracket();
-        public FromClause CloseBracket();
-        public FromClause InnerJoin(ISQLModel toTable);
-        public FromClause InnerJoin(string toTable, string commonKey);
-        public FromClause InnerJoin(string fromTable, string toTable, string commonKey);
-        public FromClause RightJoin(ISQLModel toTable);
-        public FromClause RightJoin(string toTable, string commonKey);
-        public FromClause RightJoin(string fromTable, string toTable, string commonKey);
-        public FromClause LeftJoin(ISQLModel toTable);
-        public FromClause LeftJoin(string toTable, string commonKey);
-        public FromClause LeftJoin(string fromTable, string toTable, string commonKey);
-        public FromClause Limit(int index = 1);
-    }
-    public interface IWhereClause : IQueryClause
-    {
-        public WhereClause This();
-        public OrderByClause OrderBy();
-        public WhereClause OpenBracket();
-        public WhereClause CloseBracket();
-        public WhereClause In(string field, params string[] values);
-        public WhereClause Between(string field, string value1, string value2);
-        public WhereClause EqualsTo(string field, string value);
-        public WhereClause Like(string field, string value);
-        public WhereClause GreaterThan(string field, string value);
-        public WhereClause GreaterEqualTo(string field, string value);
-        public WhereClause SmallerThan(string field, string value);
-        public WhereClause SmallerEqualTo(string field, string value);
-        public WhereClause IsNull(string field);
-        public WhereClause IsNotNull(string field);
-        public WhereClause OR();
-        public WhereClause AND();
-        public WhereClause NOT();
-        public WhereClause Limit(int index = 1);
-    }
+
+    #region OrderBy
     public interface IOrderByClause : IQueryClause
     {
         public OrderByClause Field(string field);
@@ -193,11 +202,13 @@ namespace Backend.Model
             return sb.ToString();
         }
     }
+    #endregion
+    #region GroupBy
     public interface IGroupBy : IQueryClause 
     {
         public GroupByClause Fields(params string[] fields);
+        public GroupByClause Limit(int index = 1);
     }
-
     public class GroupByClause : AbstractClause, IGroupBy
     {
         public GroupByClause() { }
@@ -217,8 +228,60 @@ namespace Backend.Model
             RemoveLastChange();
             return this;
         }
+
+        public GroupByClause Limit(int index = 1)
+        {
+            _bits.Add($"LIMIT {index}");
+            return this;
+        }
+
     }
-    public class WhereClause : AbstractClause, IWhereClause
+    #endregion
+    #region Having
+    public interface IHavingClause : IQueryClause
+    {
+        public HavingClause OpenBracket();
+        public HavingClause CloseBracket();
+        public HavingClause EqualsTo(string field, string value);
+        public HavingClause GreaterThan(string field, string value);
+        public HavingClause GreaterEqualTo(string field, string value);
+        public HavingClause SmallerThan(string field, string value);
+        public HavingClause SmallerEqualTo(string field, string value);
+        public HavingClause IsNull(string field);
+        public HavingClause IsNotNull(string field);
+        public HavingClause OR();
+        public HavingClause AND();
+        public HavingClause NOT();
+        public HavingClause Limit(int index = 1);
+    }
+    public class HavingClause : AbstractConditionalClause, IHavingClause
+    {
+        public HavingClause() { }
+        public HavingClause(IQueryClause clause, ISQLModel model) : base(model)
+        {
+            PreviousClause = clause;
+            _bits.Add("HAVING");
+        }
+        public new HavingClause EqualsTo(string field, string value) => Condition(field, value, "=");
+        public new HavingClause NotEqualsTo(string field, string value) => Condition(field, value, "!=");
+        public new HavingClause GreaterThan(string field, string value) => Condition(field, value, ">");
+        public new HavingClause GreaterEqualTo(string field, string value) => Condition(field, value, ">=");
+        public new HavingClause SmallerThan(string field, string value) => Condition(field, value, "<");
+        public new HavingClause SmallerEqualTo(string field, string value) => Condition(field, value, "<=");
+        private new HavingClause Condition(string field, string value, string oprt) => (HavingClause)base.Condition(field, value, oprt);
+        public new HavingClause IsNull(string field) => (HavingClause)base.IsNull(field);
+        public new HavingClause IsNotNull(string field) => (HavingClause)base.IsNotNull(field);
+        public new HavingClause Limit(int index = 1) => (HavingClause)base.Limit(index);
+        public new HavingClause OR() => (HavingClause)LogicalOperator("OR");
+        public new HavingClause AND() => (HavingClause)LogicalOperator("AND");
+        public new HavingClause NOT() => (HavingClause)LogicalOperator("NOT");
+        public new HavingClause OpenBracket() => (HavingClause)base.OpenBracket();
+        public new HavingClause CloseBracket() => (HavingClause)base.CloseBracket();
+
+    }
+    #endregion
+    #region Where
+    public class WhereClause : AbstractConditionalClause, IWhereClause
     {
         public WhereClause() { }
         public WhereClause(IQueryClause clause, ISQLModel model) : base(model)
@@ -231,7 +294,6 @@ namespace Backend.Model
             PreviousClause = new SelectClause(model).SelectAll().From();
             _bits.Add("WHERE");
         }
-
         public WhereClause This() 
         {
             return this.EqualsTo(TableKey, $"@{TableKey}");
@@ -256,54 +318,49 @@ namespace Backend.Model
             _bits.Add($")");
             return this;
         }
-        public WhereClause EqualsTo(string field, string value) => Condition(field, value, "=");
         public WhereClause Like(string field, string value) => Condition(field, value, "LIKE");
-        public WhereClause NotEqualsTo(string field, string value) => Condition(field, value, "!=");
-        public WhereClause GreaterThan(string field, string value) => Condition(field, value, ">");
-        public WhereClause GreaterEqualTo(string field, string value) => Condition(field, value, ">=");
-        public WhereClause SmallerThan(string field, string value) => Condition(field, value, "<");
-        public WhereClause SmallerEqualTo(string field, string value) => Condition(field, value, "<=");
-        public WhereClause IsNull(string field)
-        {
-            _bits.Add($"{field} IS NULL");
-            return this;
-        }
-        public WhereClause IsNotNull(string field)
-        {
-            _bits.Add($"{field} IS NOT NULL");
-            return this;
-        }
-        private WhereClause Condition(string field, string value, string oprt)
-        {
-            _bits.Add($"{field} {oprt} {value}");
-            return this;
-        }
-        public WhereClause Limit(int index = 1)
-        {
-            _bits.Add($"LIMIT {index}");
-            return this;
-        }
-        private WhereClause LogicalOperator(string oprt)
-        {
-            _bits.Add(oprt);
-            return this;
-        }
-        public WhereClause OR() => LogicalOperator("OR");
-        public WhereClause AND() => LogicalOperator("AND");
-        public WhereClause NOT() => LogicalOperator("NOT");
-        public WhereClause OpenBracket()
-        {
-            _bits.Add("(");
-            return this;
-        }
-        public WhereClause CloseBracket()
-        {
-            _bits.Add(")");
-            return this;
-        }
-        public OrderByClause OrderBy() => new(this, _model);
-
+        public new WhereClause EqualsTo(string field, string value) => Condition(field, value, "=");
+        public new WhereClause NotEqualsTo(string field, string value) => Condition(field, value, "!=");
+        public new WhereClause GreaterThan(string field, string value) => Condition(field, value, ">");
+        public new WhereClause GreaterEqualTo(string field, string value) => Condition(field, value, ">=");
+        public new WhereClause SmallerThan(string field, string value) => Condition(field, value, "<");
+        public new WhereClause SmallerEqualTo(string field, string value) => Condition(field, value, "<=");
+        private new WhereClause Condition(string field, string value, string oprt) => (WhereClause)base.Condition(field, value, oprt);
+        public new WhereClause IsNull(string field) => (WhereClause)base.IsNull(field);
+        public new WhereClause IsNotNull(string field) => (WhereClause)base.IsNotNull(field);
+        public new WhereClause Limit(int index = 1) => (WhereClause)base.Limit(index);
+        public new WhereClause OR() => (WhereClause)LogicalOperator("OR");
+        public new WhereClause AND() => (WhereClause)LogicalOperator("AND");
+        public new WhereClause NOT() => (WhereClause)LogicalOperator("NOT");
+        public new WhereClause OpenBracket() => (WhereClause)base.OpenBracket();
+        public new WhereClause CloseBracket() => (WhereClause)base.CloseBracket();
+        public GroupByClause GroupBy() => new(this, _model);
     }
+    public interface IWhereClause : IQueryClause
+    {
+        public GroupByClause GroupBy();
+        public WhereClause This();
+        public OrderByClause OrderBy();
+        public WhereClause In(string field, params string[] values);
+        public WhereClause Between(string field, string value1, string value2);
+        public WhereClause OpenBracket();
+        public WhereClause CloseBracket();
+        public WhereClause EqualsTo(string field, string value);
+        public WhereClause Like(string field, string value);
+        public WhereClause GreaterThan(string field, string value);
+        public WhereClause GreaterEqualTo(string field, string value);
+        public WhereClause SmallerThan(string field, string value);
+        public WhereClause SmallerEqualTo(string field, string value);
+        public WhereClause IsNull(string field);
+        public WhereClause IsNotNull(string field);
+        public WhereClause OR();
+        public WhereClause AND();
+        public WhereClause NOT();
+        public WhereClause Limit(int index = 1);
+    }
+
+    #endregion
+    #region From
     public class FromClause : AbstractClause, IFromClause
     {
         public FromClause() { }
@@ -404,8 +461,29 @@ namespace Backend.Model
             return this;
         }
         public OrderByClause OrderBy() => new(this, _model);
-
+        public GroupByClause GroupBy() => new(this, _model);
     }
+    public interface IFromClause : IQueryClause
+    {
+        public WhereClause Where();
+        public OrderByClause OrderBy();
+        public FromClause OpenBracket();
+        public FromClause CloseBracket();
+        public FromClause InnerJoin(ISQLModel toTable);
+        public FromClause InnerJoin(string toTable, string commonKey);
+        public FromClause InnerJoin(string fromTable, string toTable, string commonKey);
+        public FromClause RightJoin(ISQLModel toTable);
+        public FromClause RightJoin(string toTable, string commonKey);
+        public FromClause RightJoin(string fromTable, string toTable, string commonKey);
+        public FromClause LeftJoin(ISQLModel toTable);
+        public FromClause LeftJoin(string toTable, string commonKey);
+        public FromClause LeftJoin(string fromTable, string toTable, string commonKey);
+        public FromClause Limit(int index = 1);
+        public GroupByClause GroupBy();
+    }
+
+    #endregion
+    #region Select
     public class SelectClause : AbstractClause, ISelectClause
     {
         public SelectClause() { }
@@ -473,6 +551,20 @@ namespace Backend.Model
             return sb.ToString();
         }
     }
+    public interface ISelectClause : IQueryClause
+    {
+        public SelectClause Sum(string field);
+        public SelectClause CountAll();
+        public SelectClause SelectAll(string? tableName = null);
+        public SelectClause Select(params string[] fields);
+        public FromClause From();
+        public WhereClause Where();
+        public SelectClause Distinct();
+    }
+
+    #endregion
+
+    #region Insert
     public interface IInsertClause : IQueryClause
     {
         public InsertClause AllFields();
@@ -565,6 +657,9 @@ namespace Backend.Model
 
         public SelectClause Select() => new(this, _model);
     }
+    #endregion
+
+    #region Update
     public interface IUpdateClause : IQueryClause
     {
         public UpdateClause AllFields();
@@ -593,6 +688,9 @@ namespace Backend.Model
         public WhereClause Where() => new(this, _model);
 
     }
+    #endregion
+
+    #region Delete
     public interface IDeleteClause 
     {
         public FromClause From();
@@ -605,4 +703,5 @@ namespace Backend.Model
         public FromClause From() => new(this, _model);
         public WhereClause Where() => new(this, _model);
     }
+    #endregion
 }
