@@ -197,6 +197,23 @@ namespace Backend.Model
             return this;
         }
 
+        public WhereClause? GetWhereClause()
+        {
+            if (PreviousClause is WhereClause where) return where;
+            return null;
+        }
+
+        public FromClause? GetFromClause()
+        {
+            if (PreviousClause is FromClause from) return from;
+            return GetWhereClause()?.GetFromClause();
+        }
+        public SelectClause? GetSelectClause()
+        {
+            if (PreviousClause is SelectClause select) return select;
+            return GetFromClause()?.GetSelectClause();
+        }
+
         public override string Statement()
         {
             string? s = PreviousClause?.Statement();
