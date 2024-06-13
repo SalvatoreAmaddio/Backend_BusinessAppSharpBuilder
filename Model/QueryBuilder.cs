@@ -1,5 +1,6 @@
 ﻿using Backend.Database;
-using MailKit.Search;
+using Microsoft.Office.Interop.Excel;
+using System.Reflection;
 using System.Text;
 
 namespace Backend.Model
@@ -85,10 +86,15 @@ namespace Backend.Model
     {
         public List<QueryParameter> Params();
         public bool HasWhereConditions();
+        public bool HasWhereClause();
         public void RemoveLastChange();
         public string Statement();
         public void AddParameter(string placeholder, object? value);
+        public T? GetClause<T>() where T : class, IQueryClause, new();
+        public T OpenClause<T>() where T : class, IQueryClause, new();
+        public void Join(AbstractClause clause);
     }
+
     public abstract class AbstractClause : IQueryClause
     {
         private readonly List<QueryParameter> _parameters = [];
@@ -98,6 +104,7 @@ namespace Backend.Model
         protected string TableName { get; }
         protected string TableKey { get; }
         public IQueryClause? PreviousClause { get; protected set; }
+        public AbstractClause() { }
         public AbstractClause(ISQLModel model)
         {
             _model = model;
@@ -108,8 +115,23 @@ namespace Backend.Model
         public List<QueryParameter> Params() => _parameters;
         public bool HasWhereConditions()
         {
-            bool isWhereClause = _bits.Any(s => s.Equals("WHERE"));
-            return (isWhereClause) ? _bits.Count > 1 : false;
+            bool found = _bits.Any(s => s.Equals("WHERE"));
+            if (!found) 
+            {
+                if (PreviousClause == null) return false;
+                return PreviousClause.HasWhereConditions();
+            }
+            else return (found) ? _bits.Count > 1 : false;
+        }
+        public bool HasWhereClause()
+        {
+            bool found = _bits.Any(s => s.Equals("WHERE"));
+            if (!found)
+            {
+                if (PreviousClause == null) return false;
+                return PreviousClause.HasWhereClause();
+            }
+            else return found;
         }
         public void Dispose()
         {
@@ -117,7 +139,6 @@ namespace Backend.Model
             sb.Clear();
             GC.SuppressFinalize(this);
         }
-
         public virtual string Statement()
         {
             string? s = PreviousClause?.Statement();
@@ -132,7 +153,37 @@ namespace Backend.Model
             return sb.ToString();
         }
         public void RemoveLastChange() => _bits.RemoveAt(_bits.Count - 1);
+        public T? GetClause<T>() where T : class, IQueryClause, new()
+        {
+            Type t = typeof(T);
+            Type thisType = GetType();
+            if (t.IsAssignableFrom(thisType))
+                return this as T;
+            if (PreviousClause == null) return null;
+            return PreviousClause.GetClause<T>();
+        }
+
+        public T OpenClause<T>() where T : class, IQueryClause, new() 
+        {
+            Type t = typeof(T);
+            if (t.IsAssignableFrom(typeof(SelectClause))) throw new NotSupportedException("Cannot be Select");
+            if (PreviousClause == null) throw new NullReferenceException();
+            ConstructorInfo? constructor = t.GetConstructor([PreviousClause.GetType(), _model.GetType()]);
+            if (constructor == null)
+            {
+                throw new InvalidOperationException($"Type {t.FullName} does not have a constructor that takes a parameter of type {_model.GetType().FullName}");
+            }
+
+            return (T)constructor.Invoke([PreviousClause,_model]);
+        }
+
+        public void Join(AbstractClause clause) 
+        {
+            clause.PreviousClause = this.PreviousClause;
+            this.PreviousClause = clause;
+        }
     }
+
     public interface ISelectClause : IQueryClause
     {
         public SelectClause Sum(string field);
@@ -145,10 +196,10 @@ namespace Backend.Model
     }
     public interface IFromClause : IQueryClause
     {
+        public WhereClause Where();
         public OrderByClause OrderBy();
         public FromClause OpenBracket();
         public FromClause CloseBracket();
-        public SelectClause? GetSelectClause();
         public FromClause InnerJoin(ISQLModel toTable);
         public FromClause InnerJoin(string toTable, string commonKey);
         public FromClause InnerJoin(string fromTable, string toTable, string commonKey);
@@ -158,7 +209,6 @@ namespace Backend.Model
         public FromClause LeftJoin(ISQLModel toTable);
         public FromClause LeftJoin(string toTable, string commonKey);
         public FromClause LeftJoin(string fromTable, string toTable, string commonKey);
-        public WhereClause Where();
         public FromClause Limit(int index = 1);
     }
     public interface IWhereClause : IQueryClause
@@ -180,11 +230,14 @@ namespace Backend.Model
         public WhereClause AND();
         public WhereClause NOT();
         public WhereClause Limit(int index = 1);
-        public SelectClause? GetSelectClause();
-        public FromClause? GetFromClause();
     }
-    public class OrderByClause : AbstractClause 
+    public interface IOrderByClause : IQueryClause
     {
+        public OrderByClause Field(string field);
+    }
+    public class OrderByClause : AbstractClause, IOrderByClause 
+    {
+        public OrderByClause() { }
         public OrderByClause(IQueryClause clause, ISQLModel model) : base(model)
         {
             PreviousClause = clause;
@@ -195,23 +248,6 @@ namespace Backend.Model
         {
             _bits.Add(field);
             return this;
-        }
-
-        public WhereClause? GetWhereClause()
-        {
-            if (PreviousClause is WhereClause where) return where;
-            return null;
-        }
-
-        public FromClause? GetFromClause()
-        {
-            if (PreviousClause is FromClause from) return from;
-            return GetWhereClause()?.GetFromClause();
-        }
-        public SelectClause? GetSelectClause()
-        {
-            if (PreviousClause is SelectClause select) return select;
-            return GetFromClause()?.GetSelectClause();
         }
 
         public override string Statement()
@@ -236,6 +272,7 @@ namespace Backend.Model
     }
     public class WhereClause : AbstractClause, IWhereClause
     {
+        public WhereClause() { }
         public WhereClause(IQueryClause clause, ISQLModel model) : base(model)
         {
             PreviousClause = clause;
@@ -311,21 +348,12 @@ namespace Backend.Model
             _bits.Add(")");
             return this;
         }
-        public FromClause? GetFromClause() 
-        {
-            if (PreviousClause is FromClause from) return from;
-            return null;
-        }
-        public SelectClause? GetSelectClause()
-        {
-            if (PreviousClause is SelectClause select) return select;
-            return GetFromClause()?.GetSelectClause();
-        }
         public OrderByClause OrderBy() => new(this, _model);
 
     }
     public class FromClause : AbstractClause, IFromClause
     {
+        public FromClause() { }
         public FromClause(ISelectClause clause, ISQLModel model) : base(model)
         {
             PreviousClause = clause;
@@ -424,18 +452,13 @@ namespace Backend.Model
             return this;
         }
 
-        public SelectClause? GetSelectClause()
-        {
-            if (PreviousClause is SelectClause select) return select;
-            return null;
-        }
         public OrderByClause OrderBy() => new(this, _model);
 
     }
     public class SelectClause : AbstractClause, ISelectClause
     {
+        public SelectClause() { }
         public SelectClause(ISQLModel model) : base(model) => _bits.Add("SELECT");
-
         public SelectClause SelectAll(string? tableName = null)
         {
             if (string.IsNullOrEmpty(tableName))
@@ -444,43 +467,36 @@ namespace Backend.Model
             _bits.Add($"{tableName}.*");
             return this;
         }
-
         public SelectClause Select(params string[] fields)
         {
             foreach (var field in fields)
                 _bits.Add($"{field}");
             return this;
         }
-
         public SelectClause Distinct()
         {
             _bits.Add("DISTINCT");
             return this;
         }
-
         public SelectClause CountAll()
         {
             _bits.Add($"Count(*)");
             return this;
         }
-
         public SelectClause Sum(string field)
         {
             _bits.Add($"sum({field})");
             return this;
         }
-
         public FromClause From()
         {
             if (_bits.Count == 1) SelectAll();
             return new FromClause(this, _model);
         }
-
         public WhereClause Where()
         {
             return From().Where();
         }
-
         public override string Statement()
         {
             sb.Clear();
@@ -497,6 +513,5 @@ namespace Backend.Model
 
             return sb.ToString();
         }
-
     }
 }
