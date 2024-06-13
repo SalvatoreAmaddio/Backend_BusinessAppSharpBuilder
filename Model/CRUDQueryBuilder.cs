@@ -511,4 +511,14 @@ namespace Backend.Model
             return sb.ToString();
         }
     }
+
+    public interface IInsertClause : IQueryClause { }
+    public class InsertClause : AbstractClause, IInsertClause
+    {
+        public InsertClause() { }
+        public InsertClause(ISQLModel model) : base(model) => _bits.Add($"INSERT INTO {model.GetTableName()}");
+
+
+
+    }
 }
