@@ -203,6 +203,7 @@ namespace Backend.Model
         }
     }
     #endregion
+    
     #region GroupBy
     public interface IGroupBy : IQueryClause 
     {
@@ -237,6 +238,7 @@ namespace Backend.Model
 
     }
     #endregion
+    
     #region Having
     public interface IHavingClause : IQueryClause
     {
@@ -280,6 +282,7 @@ namespace Backend.Model
 
     }
     #endregion
+    
     #region Where
     public class WhereClause : AbstractConditionalClause, IWhereClause
     {
@@ -360,6 +363,7 @@ namespace Backend.Model
     }
 
     #endregion
+    
     #region From
     public class FromClause : AbstractClause, IFromClause
     {
@@ -483,6 +487,7 @@ namespace Backend.Model
     }
 
     #endregion
+    
     #region Select
     public class SelectClause : AbstractClause, ISelectClause
     {
