@@ -25,7 +25,7 @@ namespace Backend.Model
         public AbstractSQLModel() 
         {
             RecordCountQry = this.CountAll().From().Statement();
-            SelectQry = this.SelectAll().From().Statement();
+            SelectQry = this.Select().AllFields().From().Statement();
             InsertQry = this.Insert().AllFields().Values().Statement();
             UpdateQry = this.Update().AllFields().Where().This().Statement();
             DeleteQry = this.Delete().From().Where().This().Statement();
