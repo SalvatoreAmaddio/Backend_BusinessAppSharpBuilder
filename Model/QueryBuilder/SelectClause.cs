@@ -11,7 +11,7 @@
             PreviousClause = clause;
         }
 
-        public SelectClause SelectAll(string? tableName = null)
+        public SelectClause AllFields(string? tableName = null)
         {
             if (string.IsNullOrEmpty(tableName))
                 tableName = this.TableName;
@@ -19,7 +19,8 @@
             _bits.Add($"{tableName}.*");
             return this;
         }
-        public SelectClause Select(params string[] fields)
+
+        public SelectClause Fields(params string[] fields)
         {
             foreach (var field in fields)
                 _bits.Add($"{field}");
@@ -40,9 +41,10 @@
             _bits.Add($"sum({field})");
             return this;
         }
-        public FromClause From()
+        public FromClause From(ISQLModel? model = null)
         {
-            if (_bits.Count == 1) SelectAll();
+            if (_bits.Count == 1) AllFields();
+            if (model!=null) _model = model;
             return new FromClause(this, _model);
         }
         public WhereClause Where()
@@ -72,9 +74,9 @@
     {
         public SelectClause Sum(string field);
         public SelectClause CountAll();
-        public SelectClause SelectAll(string? tableName = null);
-        public SelectClause Select(params string[] fields);
-        public FromClause From();
+        public SelectClause AllFields(string? tableName = null);
+        public SelectClause Fields(params string[] fields);
+        public FromClause From(ISQLModel? model = null);
         public WhereClause Where();
         public SelectClause Distinct();
     }

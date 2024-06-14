@@ -38,6 +38,7 @@
                 _bits.Add(fieldName);
                 _bits.Add(",");
             }
+            RemoveLastChange();
             _bits.Add(")");
             return this;
         }

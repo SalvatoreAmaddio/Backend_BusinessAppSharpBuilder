@@ -11,7 +11,7 @@
         }
         public WhereClause(ISQLModel model) : base(model)
         {
-            PreviousClause = new SelectClause(model).SelectAll().From();
+            PreviousClause = new SelectClause(model).AllFields().From();
             _bits.Add("WHERE");
         }
         public WhereClause This()

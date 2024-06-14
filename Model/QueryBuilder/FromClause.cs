@@ -12,7 +12,7 @@
         }
         public FromClause(ISQLModel model) : base(model)
         {
-            PreviousClause = new SelectClause(model).SelectAll();
+            PreviousClause = new SelectClause(model).AllFields();
             _bits.Add("FROM");
             _bits.Add(TableName);
         }
