@@ -12,7 +12,7 @@
         public OrderByClause() { }
         public OrderByClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses.AddClause(clause);
+            Clauses.Add(clause);
             _bits.Add("ORDER BY");
         }
         public GroupByClause GroupBy() => new(this, _model);

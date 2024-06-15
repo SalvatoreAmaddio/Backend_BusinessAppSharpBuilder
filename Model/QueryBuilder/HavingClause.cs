@@ -23,7 +23,7 @@
         public HavingClause() { }
         public HavingClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses.AddClause(clause);
+            Clauses.Add(clause);
             _bits.Add("HAVING");
         }
         public new HavingClause EqualsTo(string field, string value) => Condition(field, value, "=");

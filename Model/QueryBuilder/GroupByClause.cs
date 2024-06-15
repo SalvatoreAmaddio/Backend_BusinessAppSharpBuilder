@@ -17,7 +17,7 @@ namespace Backend.Model
         public GroupByClause() { }
         public GroupByClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses.AddClause(clause);
+            Clauses.Add(clause);
             _bits.Add("GROUP BY");
         }
 

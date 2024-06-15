@@ -7,13 +7,13 @@
         public FromClause() { }
         public FromClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses.AddClause(clause);
+            Clauses.Add(clause);
             _bits.Add("FROM");
             _bits.Add(TableName);
         }
         public FromClause(ISQLModel model) : base(model)
         {
-            Clauses.AddClause(new SelectClause(model).AllFields());
+            Clauses.Add(new SelectClause(model).AllFields());
             _bits.Add("FROM");
             _bits.Add(TableName);
         }

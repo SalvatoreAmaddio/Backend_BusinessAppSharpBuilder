@@ -9,7 +9,7 @@
 
         public SelectClause(InsertClause clause, ISQLModel model) : this(model)
         {
-            Clauses.AddClause(clause);
+            Clauses.Add(clause);
         }
 
         public SelectClause AllFields(string? tableName = null)

@@ -7,12 +7,12 @@
         public WhereClause() { }
         public WhereClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses.AddClause(clause);
+            Clauses.Add(clause);
             _bits.Add("WHERE");
         }
         public WhereClause(ISQLModel model) : base(model)
         {
-            Clauses.AddClause(new SelectClause(model).AllFields().From());
+            Clauses.Add(new SelectClause(model).AllFields().From());
             _bits.Add("WHERE");
         }
         public WhereClause This()

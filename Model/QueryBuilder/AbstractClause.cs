@@ -16,9 +16,9 @@ namespace Backend.Model
     
     public class Clauses : List<AbstractClause>
     { 
-        public void AddClause(AbstractClause clause) 
+        public new void Add(AbstractClause clause) 
         {
-            Add(clause);
+            base.Add(clause);
             Reorder();
         }
         private void Reorder() 
@@ -35,13 +35,11 @@ namespace Backend.Model
         private List<QueryParameter> _parameters = [];
         protected List<string> _bits = [];
         protected StringBuilder sb = new();
-        protected ISQLModel _model;
-        protected string TableName { get; }
-        protected string TableKey { get; }
+        protected ISQLModel _model = null!;
+        protected string TableName { get; } = string.Empty;
+        protected string TableKey { get; } = string.Empty;
         protected Clauses Clauses = [];
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public AbstractClause() { }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public AbstractClause(ISQLModel model)
         {
             _model = model;
