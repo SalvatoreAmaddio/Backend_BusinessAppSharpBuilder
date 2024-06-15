@@ -8,6 +8,7 @@
     }
     public class UpdateClause : AbstractClause, IUpdateClause
     {
+        public override int Order => 1;
         public UpdateClause() { }
         public UpdateClause(ISQLModel model) : base(model) => _bits.Add($"UPDATE {model.GetTableName()}");
 

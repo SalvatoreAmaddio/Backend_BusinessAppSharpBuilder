@@ -11,6 +11,7 @@
     }
     public class InsertClause : AbstractClause, IInsertClause
     {
+        public override int Order => 1;
         public InsertClause() { }
         public InsertClause(ISQLModel model) : base(model) => _bits.Add($"INSERT INTO {model.GetTableName()}");
 

@@ -3,12 +3,13 @@
     #region Select
     public class SelectClause : AbstractClause, ISelectClause
     {
+        public override int Order => 1;
         public SelectClause() { }
         public SelectClause(ISQLModel model) : base(model) => _bits.Add("SELECT");
 
-        public SelectClause(IInsertClause clause, ISQLModel model) : this(model)
+        public SelectClause(InsertClause clause, ISQLModel model) : this(model)
         {
-            PreviousClause = clause;
+            Clauses.AddClause(clause);
         }
 
         public SelectClause AllFields(string? tableName = null)
@@ -53,11 +54,17 @@
         }
         public override string Statement()
         {
-            string? s = PreviousClause?.Statement();
+            string? s = null;
             sb.Clear();
-            sb.Append(s);
+            foreach (AbstractClause clause in Clauses) 
+            {
+                s = clause?.Statement();
+                sb.Append(s);
+            }
+
             bool notFirstIndex = false;
             bool notLastIndex = false;
+
             for (int i = 0; i <= _bits.Count - 1; i++)
             {
                 notFirstIndex = i > 0;

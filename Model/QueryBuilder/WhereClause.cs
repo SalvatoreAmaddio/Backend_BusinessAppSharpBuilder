@@ -3,15 +3,16 @@
     #region Where
     public class WhereClause : AbstractConditionalClause, IWhereClause
     {
+        public override int Order => 3;
         public WhereClause() { }
-        public WhereClause(IQueryClause clause, ISQLModel model) : base(model)
+        public WhereClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            PreviousClause = clause;
+            Clauses.AddClause(clause);
             _bits.Add("WHERE");
         }
         public WhereClause(ISQLModel model) : base(model)
         {
-            PreviousClause = new SelectClause(model).AllFields().From();
+            Clauses.AddClause(new SelectClause(model).AllFields().From());
             _bits.Add("WHERE");
         }
         public WhereClause This()
@@ -55,6 +56,7 @@
         public new WhereClause OpenBracket() => (WhereClause)base.OpenBracket();
         public new WhereClause CloseBracket() => (WhereClause)base.CloseBracket();
         public GroupByClause GroupBy() => new(this, _model);
+        public override string ToString() => "WHERE";
     }
     public interface IWhereClause : IQueryClause
     {

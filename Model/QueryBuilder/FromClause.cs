@@ -3,16 +3,17 @@
     #region From
     public class FromClause : AbstractClause, IFromClause
     {
+        public override int Order => 2;
         public FromClause() { }
-        public FromClause(IQueryClause clause, ISQLModel model) : base(model)
+        public FromClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            PreviousClause = clause;
+            Clauses.AddClause(clause);
             _bits.Add("FROM");
             _bits.Add(TableName);
         }
         public FromClause(ISQLModel model) : base(model)
         {
-            PreviousClause = new SelectClause(model).AllFields();
+            Clauses.AddClause(new SelectClause(model).AllFields());
             _bits.Add("FROM");
             _bits.Add(TableName);
         }
@@ -102,6 +103,7 @@
         }
         public OrderByClause OrderBy() => new(this, _model);
         public GroupByClause GroupBy() => new(this, _model);
+        public override string ToString() => "FROM";
     }
     public interface IFromClause : IQueryClause
     {

@@ -3,16 +3,19 @@
     #region OrderBy
     public interface IOrderByClause : IQueryClause
     {
+        public GroupByClause GroupBy();
         public OrderByClause Field(string field);
     }
     public class OrderByClause : AbstractClause, IOrderByClause
     {
+        public override int Order => 6;
         public OrderByClause() { }
-        public OrderByClause(IQueryClause clause, ISQLModel model) : base(model)
+        public OrderByClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            PreviousClause = clause;
+            Clauses.AddClause(clause);
             _bits.Add("ORDER BY");
         }
+        public GroupByClause GroupBy() => new(this, _model);
 
         public OrderByClause Field(string field)
         {
@@ -22,9 +25,14 @@
 
         public override string Statement()
         {
-            string? s = PreviousClause?.Statement();
+            string? s = null;
             sb.Clear();
-            sb.Append(s);
+            foreach (var clause in Clauses) 
+            {
+                s = clause?.Statement();
+                sb.Append(s);
+            }
+
             bool notFirstIndex = false;
             bool notLastIndex = false;
 
