@@ -27,6 +27,8 @@ namespace Backend.Model
             this.Clear();
             this.AddRange(new_order);
         }
+
+        public AbstractClause GetLast() => this[Count-1];
     }
 
     public abstract class AbstractClause : IQueryClause
@@ -93,14 +95,11 @@ namespace Backend.Model
         {
             Type t = typeof(T);
             if (t.IsAssignableFrom(typeof(SelectClause))) throw new NotSupportedException("Cannot be Select");
-            if (Clauses == null) throw new NullReferenceException();
+            if (Clauses.Count == 0) throw new NullReferenceException();
             ConstructorInfo? constructor = t.GetConstructor([Clauses.GetType(), _model.GetType()]);
             if (constructor == null)
-            {
                 throw new InvalidOperationException($"Type {t.FullName} does not have a constructor that takes a parameter of type {_model.GetType().FullName}");
-            }
-
-            return (T)constructor.Invoke([Clauses, _model]);
+            return (T)constructor.Invoke([Clauses.GetLast(), _model]);
         }
     }
 
