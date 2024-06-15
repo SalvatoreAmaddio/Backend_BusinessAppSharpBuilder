@@ -85,12 +85,12 @@
             return this;
         }
 
-        public override string Statement()
+        public override string AsString()
         {
             int index = _bits.LastIndexOf("),");
             if (index >= 0)
                 _bits[index] = ")";
-            return base.Statement();
+            return base.AsString();
         }
 
         public SelectClause Select() => new(this, _model);

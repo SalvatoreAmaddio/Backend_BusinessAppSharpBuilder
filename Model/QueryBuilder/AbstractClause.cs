@@ -8,7 +8,7 @@ namespace Backend.Model
     {
         public List<QueryParameter> Params();
         public void RemoveLastChange();
-        public string Statement();
+        public string AsString();
         public void AddParameter(string placeholder, object? value);
         public T? GetClause<T>() where T : class, IQueryClause, new();
         public T OpenClause<T>() where T : class, IQueryClause, new();
@@ -34,16 +34,17 @@ namespace Backend.Model
     public abstract class AbstractClause : IQueryClause
     {
         public abstract int Order { get; }
-        private List<QueryParameter> _parameters = [];
+        public List<QueryParameter> _parameters = [];
         protected List<string> _bits = [];
         protected StringBuilder sb = new();
         protected ISQLModel _model = null!;
         protected string TableName { get; } = string.Empty;
         protected string TableKey { get; } = string.Empty;
-        protected Clauses Clauses = [];
+        public Clauses Clauses = [];
         public AbstractClause() { }
         public AbstractClause(ISQLModel model)
         {
+            Clauses.Add(this);
             _model = model;
             TableName = model.GetTableName();
             TableKey = model?.GetPrimaryKey()?.Name ?? throw new NullReferenceException("PK is null");
@@ -51,21 +52,37 @@ namespace Backend.Model
         public void AddParameter(string placeholder, object? value) => _parameters.Add(new(placeholder, value));
         public List<QueryParameter> Params() => _parameters;
 
-        public void Dispose()
+        public virtual void Dispose()
         {
-            _bits.Clear();
-            sb.Clear();
+            foreach (AbstractClause clause in Clauses) 
+                clause.Clear();
+
+            Clauses.Clear();
             GC.SuppressFinalize(this);
         }
-        public virtual string Statement()
+
+        public void Clear() 
         {
-            string? s = null;
-            sb.Clear();
+            _bits.Clear();
+            _parameters.Clear();
+            Console.WriteLine($"Disposed {this}");
+        }
+
+        public string Statement() 
+        {
+            StringBuilder sb = new();
             foreach (AbstractClause clause in Clauses) 
             {
-                s = clause.Statement();
+                string s = clause.AsString();
                 sb.Append(s);
             }
+
+            return sb.ToString();
+        }
+
+        public virtual string AsString()
+        {
+            sb.Clear();
 
             for (int i = 0; i <= _bits.Count - 1; i++)
             {
@@ -75,6 +92,7 @@ namespace Backend.Model
 
             return sb.ToString();
         }
+
         public void RemoveLastChange() => _bits.RemoveAt(_bits.Count - 1);
         public T? GetClause<T>() where T : class, IQueryClause, new()
         {
@@ -90,6 +108,19 @@ namespace Backend.Model
             if (whereClause == null) return false;
             return whereClause._bits.Count() > 1;
         } 
+       
+        public T? As<T>() where T : class, IQueryClause, new()
+        {
+            return this as T;
+        }
+
+        public void Print() 
+        {
+            foreach (var c in Clauses)
+            {
+                Console.WriteLine(c);
+            }
+        }
 
         public T OpenClause<T>() where T : class, IQueryClause, new()
         {

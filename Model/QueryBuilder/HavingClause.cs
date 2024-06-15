@@ -23,7 +23,8 @@
         public HavingClause() { }
         public HavingClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses.Add(clause);
+            Clauses = clause.Clauses;
+            Clauses.Add(this);
             _bits.Add("HAVING");
         }
         public new HavingClause EqualsTo(string field, string value) => Condition(field, value, "=");
@@ -41,7 +42,8 @@
         public new HavingClause NOT() => (HavingClause)LogicalOperator("NOT");
         public new HavingClause OpenBracket() => (HavingClause)base.OpenBracket();
         public new HavingClause CloseBracket() => (HavingClause)base.CloseBracket();
-        public override string ToString() => "HAVING";
+        public override string ToString() => "HAVING CLAUSE";
+
     }
     #endregion
 }

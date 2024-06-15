@@ -17,7 +17,8 @@ namespace Backend.Model
         public GroupByClause() { }
         public GroupByClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses.Add(clause);
+            Clauses = clause.Clauses;
+            Clauses.Add(this);
             _bits.Add("GROUP BY");
         }
 
@@ -40,8 +41,7 @@ namespace Backend.Model
             _bits.Add($"LIMIT {index}");
             return this;
         }
-
-        public override string ToString() => "GROUP BY";
+        public override string ToString() => "GROUP BY CLAUSE";
 
     }
     #endregion

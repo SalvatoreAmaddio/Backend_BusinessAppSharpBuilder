@@ -7,13 +7,15 @@
         public FromClause() { }
         public FromClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses.Add(clause);
+            Clauses = clause.Clauses;
+            _parameters = clause._parameters;
+            Clauses.Add(this);
             _bits.Add("FROM");
             _bits.Add(TableName);
         }
         public FromClause(ISQLModel model) : base(model)
         {
-            Clauses.Add(new SelectClause(model).AllFields());
+            Clauses.Add(new SelectClause(model).All());
             _bits.Add("FROM");
             _bits.Add(TableName);
         }
@@ -103,7 +105,8 @@
         }
         public OrderByClause OrderBy() => new(this, _model);
         public GroupByClause GroupBy() => new(this, _model);
-        public override string ToString() => "FROM";
+
+        public override string ToString() => "FROM CLAUSE";
     }
     public interface IFromClause : IQueryClause
     {

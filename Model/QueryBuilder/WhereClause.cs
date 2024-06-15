@@ -7,12 +7,13 @@
         public WhereClause() { }
         public WhereClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses.Add(clause);
+            Clauses = clause.Clauses;
+            Clauses.Add(this);
             _bits.Add("WHERE");
         }
         public WhereClause(ISQLModel model) : base(model)
         {
-            Clauses.Add(new SelectClause(model).AllFields().From());
+            Clauses.Add(new SelectClause(model).All().From());
             _bits.Add("WHERE");
         }
         public WhereClause This()
@@ -56,7 +57,7 @@
         public new WhereClause OpenBracket() => (WhereClause)base.OpenBracket();
         public new WhereClause CloseBracket() => (WhereClause)base.CloseBracket();
         public GroupByClause GroupBy() => new(this, _model);
-        public override string ToString() => "WHERE";
+        public override string ToString() => "WHERE CLAUSE";
     }
     public interface IWhereClause : IQueryClause
     {

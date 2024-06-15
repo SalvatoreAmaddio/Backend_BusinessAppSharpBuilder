@@ -4,15 +4,15 @@
     public class SelectClause : AbstractClause, ISelectClause
     {
         public override int Order => 1;
-        public SelectClause() { }
+        public SelectClause() => Clauses.Add(this);
         public SelectClause(ISQLModel model) : base(model) => _bits.Add("SELECT");
-
         public SelectClause(InsertClause clause, ISQLModel model) : this(model)
         {
-            Clauses.Add(clause);
+            Clauses = clause.Clauses;
+            _parameters = clause._parameters;
+            Clauses.Add(this);
         }
-
-        public SelectClause AllFields(string? tableName = null)
+        public SelectClause All(string? tableName = null)
         {
             if (string.IsNullOrEmpty(tableName))
                 tableName = this.TableName;
@@ -20,7 +20,6 @@
             _bits.Add($"{tableName}.*");
             return this;
         }
-
         public SelectClause Fields(params string[] fields)
         {
             foreach (var field in fields)
@@ -44,24 +43,14 @@
         }
         public FromClause From(ISQLModel? model = null)
         {
-            if (_bits.Count == 1) AllFields();
+            if (_bits.Count == 1) All();
             if (model!=null) _model = model;
             return new FromClause(this, _model);
         }
-        public WhereClause Where()
+        public WhereClause Where() => From().Where();
+        public override string AsString()
         {
-            return From().Where();
-        }
-        public override string Statement()
-        {
-            string? s = null;
             sb.Clear();
-            foreach (AbstractClause clause in Clauses) 
-            {
-                s = clause?.Statement();
-                sb.Append(s);
-            }
-
             bool notFirstIndex = false;
             bool notLastIndex = false;
 
@@ -76,12 +65,15 @@
 
             return sb.ToString();
         }
+
+        public override string ToString() => "SELECT CLAUSE";
+
     }
     public interface ISelectClause : IQueryClause
     {
         public SelectClause Sum(string field);
         public SelectClause CountAll();
-        public SelectClause AllFields(string? tableName = null);
+        public SelectClause All(string? tableName = null);
         public SelectClause Fields(params string[] fields);
         public FromClause From(ISQLModel? model = null);
         public WhereClause Where();

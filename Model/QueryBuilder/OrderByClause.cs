@@ -12,7 +12,8 @@
         public OrderByClause() { }
         public OrderByClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses.Add(clause);
+            Clauses = clause.Clauses;
+            Clauses.Add(this);
             _bits.Add("ORDER BY");
         }
         public GroupByClause GroupBy() => new(this, _model);
@@ -23,16 +24,9 @@
             return this;
         }
 
-        public override string Statement()
+        public override string AsString()
         {
-            string? s = null;
             sb.Clear();
-            foreach (var clause in Clauses) 
-            {
-                s = clause?.Statement();
-                sb.Append(s);
-            }
-
             bool notFirstIndex = false;
             bool notLastIndex = false;
 
@@ -47,6 +41,9 @@
 
             return sb.ToString();
         }
+
+        public override string ToString() => "ORDER BY CLAUSE";
+
     }
     #endregion
 }
