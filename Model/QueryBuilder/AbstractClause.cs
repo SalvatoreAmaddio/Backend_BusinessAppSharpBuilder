@@ -96,10 +96,10 @@ namespace Backend.Model
             Type t = typeof(T);
             if (t.IsAssignableFrom(typeof(SelectClause))) throw new NotSupportedException("Cannot be Select");
             if (Clauses.Count == 0) throw new NullReferenceException();
-            ConstructorInfo? constructor = t.GetConstructor([Clauses.GetType(), _model.GetType()]);
+            ConstructorInfo? constructor = t.GetConstructor([this.GetType(), _model.GetType()]);
             if (constructor == null)
                 throw new InvalidOperationException($"Type {t.FullName} does not have a constructor that takes a parameter of type {_model.GetType().FullName}");
-            return (T)constructor.Invoke([Clauses.GetLast(), _model]);
+            return (T)constructor.Invoke([this, _model]);
         }
     }
 
