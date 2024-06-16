@@ -3,7 +3,7 @@ using System.Data.Common;
 
 namespace Backend.ExtensionMethods
 {
-    public static class Extensions
+    public static class DbDataReaderExtensions
     {
 
         /// <summary>
