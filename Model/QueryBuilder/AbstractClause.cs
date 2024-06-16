@@ -102,15 +102,6 @@ namespace Backend.Model
             Type t = typeof(T);
             return Clauses.FirstOrDefault(s => s.GetType().IsAssignableFrom(t)) as T;
         }
-
-        public bool HasWhereClause() => GetClause<WhereClause>() != null;
-
-        public bool HasWhereConditions() 
-        { 
-            WhereClause? whereClause = GetClause<WhereClause>();
-            if (whereClause == null) return false;
-            return whereClause._bits.Count() > 1;
-        } 
        
         public T? As<T>() where T : class, IQueryClause, new()
         {
@@ -141,6 +132,7 @@ namespace Backend.Model
     {
         public AbstractConditionalClause() { }
         public AbstractConditionalClause(ISQLModel model) : base(model) { }
+        public bool HasConditions() => _bits.Count() > 1;
         public AbstractConditionalClause EqualsTo(string field, string value) => Condition(field, value, "=");
         public AbstractConditionalClause NotEqualsTo(string field, string value) => Condition(field, value, "!=");
         public AbstractConditionalClause GreaterThan(string field, string value) => Condition(field, value, ">");
