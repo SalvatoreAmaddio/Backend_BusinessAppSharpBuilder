@@ -1,15 +1,14 @@
 ﻿namespace Backend.Model
 {
-    #region Select
-    public class SelectClause : AbstractClause, ISelectClause
+    public class SelectClause : AbstractClause
     {
         public override int Order => 1;
         public SelectClause() => Clauses.Add(this);
         public SelectClause(ISQLModel model) : base(model) => _bits.Add("SELECT");
         public SelectClause(InsertClause clause, ISQLModel model) : this(model)
         {
-            Clauses = clause.Clauses;
-            _parameters = clause._parameters;
+            TransferClauses(ref clause.Clauses);
+            TransferParameters(ref _parameters);
             Clauses.Add(this);
         }
         public SelectClause All(string? tableName = null)
@@ -41,6 +40,7 @@
             _bits.Add($"sum({field})");
             return this;
         }
+
         public FromClause From(ISQLModel? model = null)
         {
             if (_bits.Count == 1) All();
@@ -48,6 +48,10 @@
             return new FromClause(this, _model);
         }
         public WhereClause Where() => From().Where();
+        public GroupByClause GroupBy() => From().GroupBy();
+        public OrderByClause OrderBy() => From().OrderBy();
+        public LimitClause Limit(int limit = 1) => From().Limit(limit);
+
         public override string AsString()
         {
             sb.Clear();
@@ -65,21 +69,8 @@
 
             return sb.ToString();
         }
-
         public override string ToString() => "SELECT CLAUSE";
 
     }
-    public interface ISelectClause : IQueryClause
-    {
-        public SelectClause Sum(string field);
-        public SelectClause CountAll();
-        public SelectClause All(string? tableName = null);
-        public SelectClause Fields(params string[] fields);
-        public FromClause From(ISQLModel? model = null);
-        public WhereClause Where();
-        public SelectClause Distinct();
-    }
-
-    #endregion
 
 }

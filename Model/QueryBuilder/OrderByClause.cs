@@ -1,18 +1,15 @@
-﻿namespace Backend.Model
+﻿using Backend.Model.QueryBuilder;
+
+namespace Backend.Model
 {
-    #region OrderBy
-    public interface IOrderByClause : IQueryClause
-    {
-        public GroupByClause GroupBy();
-        public OrderByClause Field(string field);
-    }
-    public class OrderByClause : AbstractClause, IOrderByClause
+    public class OrderByClause : AbstractClause
     {
         public override int Order => 6;
         public OrderByClause() { }
         public OrderByClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses = clause.Clauses;
+            TransferClauses(ref clause.Clauses);
+            TransferParameters(ref _parameters);
             Clauses.Add(this);
             _bits.Add("ORDER BY");
         }
@@ -41,9 +38,9 @@
 
             return sb.ToString();
         }
-
+        public LimitClause Limit(int limit = 1) => new(this, _model, limit);
         public override string ToString() => "ORDER BY CLAUSE";
 
     }
-    #endregion
+
 }

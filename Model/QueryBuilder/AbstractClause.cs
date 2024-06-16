@@ -49,6 +49,9 @@ namespace Backend.Model
             TableName = model.GetTableName();
             TableKey = model?.GetPrimaryKey()?.Name ?? throw new NullReferenceException("PK is null");
         }
+
+        protected void TransferClauses(ref Clauses clauses) => this.Clauses = clauses;
+        protected void TransferParameters(ref List<QueryParameter> parameters) => this._parameters = parameters;
         public void AddParameter(string placeholder, object? value) => _parameters.Add(new(placeholder, value));
         public List<QueryParameter> Params() => _parameters;
 
@@ -56,8 +59,9 @@ namespace Backend.Model
         {
             foreach (AbstractClause clause in Clauses) 
                 clause.Clear();
-
+            
             Clauses.Clear();
+            Clear();
             GC.SuppressFinalize(this);
         }
 
@@ -65,7 +69,6 @@ namespace Backend.Model
         {
             _bits.Clear();
             _parameters.Clear();
-            Console.WriteLine($"Disposed {this}");
         }
 
         public string Statement() 
@@ -159,11 +162,7 @@ namespace Backend.Model
             _bits.Add($"{field} {oprt} {value}");
             return this;
         }
-        protected AbstractConditionalClause Limit(int index = 1)
-        {
-            _bits.Add($"LIMIT {index}");
-            return this;
-        }
+
         protected AbstractConditionalClause LogicalOperator(string oprt)
         {
             _bits.Add(oprt);
@@ -183,6 +182,7 @@ namespace Backend.Model
             return this;
         }
         public OrderByClause OrderBy() => new(this, _model);
+        public LimitClause Limit(int limit = 1) => new(this, _model, limit);
 
     }
 }

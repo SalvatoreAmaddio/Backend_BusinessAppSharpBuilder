@@ -2,28 +2,17 @@
 
 namespace Backend.Model
 {
-    #region GroupBy
-    public interface IGroupBy : IQueryClause
-    {
-        public OrderByClause OrderBy();
-        public GroupByClause Fields(params string[] fields);
-        public GroupByClause Limit(int index = 1);
-        public HavingClause Having();
-    }
-
-    public class GroupByClause : AbstractClause, IGroupBy
+    public class GroupByClause : AbstractClause
     {
         public override int Order => 4;
         public GroupByClause() { }
         public GroupByClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses = clause.Clauses;
+            TransferClauses(ref clause.Clauses);
+            TransferParameters(ref _parameters);
             Clauses.Add(this);
             _bits.Add("GROUP BY");
         }
-
-        public HavingClause Having() => new(this,_model);
-        public OrderByClause OrderBy() => new(this,_model);
 
         public GroupByClause Fields(params string[] fields)
         {
@@ -36,14 +25,11 @@ namespace Backend.Model
             return this;
         }
 
-        public GroupByClause Limit(int index = 1)
-        {
-            _bits.Add($"LIMIT {index}");
-            return this;
-        }
+        public HavingClause Having() => new(this, _model);
+        public OrderByClause OrderBy() => new(this, _model);
+        public LimitClause Limit(int limit = 1) => new(this, _model, limit);
         public override string ToString() => "GROUP BY CLAUSE";
 
     }
-    #endregion
 
 }

@@ -1,14 +1,13 @@
 ﻿namespace Backend.Model
 {
-    #region From
-    public class FromClause : AbstractClause, IFromClause
+    public class FromClause : AbstractClause
     {
         public override int Order => 2;
         public FromClause() { }
         public FromClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses = clause.Clauses;
-            _parameters = clause._parameters;
+            TransferClauses(ref clause.Clauses);
+            TransferParameters(ref _parameters);
             Clauses.Add(this);
             _bits.Add("FROM");
             _bits.Add(TableName);
@@ -87,7 +86,7 @@
         public FromClause LeftJoin(string fromTable, string toTable, string commonKey) => MakeJoin("LEFT JOIN", fromTable, toTable, commonKey);
         #endregion
 
-        public WhereClause Where() => new(this, _model);
+
         public FromClause CloseBracket()
         {
             _bits.Add(")");
@@ -98,35 +97,13 @@
             _bits.Insert(1, "(");
             return this;
         }
-        public FromClause Limit(int index = 1)
-        {
-            _bits.Add($"LIMIT {index}");
-            return this;
-        }
-        public OrderByClause OrderBy() => new(this, _model);
+
+        public WhereClause Where() => new(this, _model);
         public GroupByClause GroupBy() => new(this, _model);
+        public OrderByClause OrderBy() => new(this, _model);
+        public LimitClause Limit(int limit = 1) => new(this, _model, limit);
 
         public override string ToString() => "FROM CLAUSE";
     }
-    public interface IFromClause : IQueryClause
-    {
-        public WhereClause Where();
-        public OrderByClause OrderBy();
-        public FromClause OpenBracket();
-        public FromClause CloseBracket();
-        public FromClause InnerJoin(ISQLModel toTable);
-        public FromClause InnerJoin(string toTable, string commonKey);
-        public FromClause InnerJoin(string fromTable, string toTable, string commonKey);
-        public FromClause RightJoin(ISQLModel toTable);
-        public FromClause RightJoin(string toTable, string commonKey);
-        public FromClause RightJoin(string fromTable, string toTable, string commonKey);
-        public FromClause LeftJoin(ISQLModel toTable);
-        public FromClause LeftJoin(string toTable, string commonKey);
-        public FromClause LeftJoin(string fromTable, string toTable, string commonKey);
-        public FromClause Limit(int index = 1);
-        public GroupByClause GroupBy();
-    }
-
-    #endregion
 
 }

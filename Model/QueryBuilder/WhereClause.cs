@@ -1,13 +1,13 @@
 ﻿namespace Backend.Model
 {
-    #region Where
-    public class WhereClause : AbstractConditionalClause, IWhereClause
+    public class WhereClause : AbstractConditionalClause
     {
         public override int Order => 3;
         public WhereClause() { }
         public WhereClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses = clause.Clauses;
+            TransferClauses(ref clause.Clauses);
+            TransferParameters(ref _parameters);
             Clauses.Add(this);
             _bits.Add("WHERE");
         }
@@ -50,7 +50,6 @@
         private new WhereClause Condition(string field, string value, string oprt) => (WhereClause)base.Condition(field, value, oprt);
         public new WhereClause IsNull(string field) => (WhereClause)base.IsNull(field);
         public new WhereClause IsNotNull(string field) => (WhereClause)base.IsNotNull(field);
-        public new WhereClause Limit(int index = 1) => (WhereClause)base.Limit(index);
         public new WhereClause OR() => (WhereClause)LogicalOperator("OR");
         public new WhereClause AND() => (WhereClause)LogicalOperator("AND");
         public new WhereClause NOT() => (WhereClause)LogicalOperator("NOT");
@@ -59,29 +58,4 @@
         public GroupByClause GroupBy() => new(this, _model);
         public override string ToString() => "WHERE CLAUSE";
     }
-    public interface IWhereClause : IQueryClause
-    {
-        public GroupByClause GroupBy();
-        public WhereClause This();
-        public OrderByClause OrderBy();
-        public WhereClause In(string field, params string[] values);
-        public WhereClause Between(string field, string value1, string value2);
-        public WhereClause OpenBracket();
-        public WhereClause CloseBracket();
-        public WhereClause EqualsTo(string field, string value);
-        public WhereClause Like(string field, string value);
-        public WhereClause GreaterThan(string field, string value);
-        public WhereClause GreaterEqualTo(string field, string value);
-        public WhereClause SmallerThan(string field, string value);
-        public WhereClause SmallerEqualTo(string field, string value);
-        public WhereClause IsNull(string field);
-        public WhereClause IsNotNull(string field);
-        public WhereClause OR();
-        public WhereClause AND();
-        public WhereClause NOT();
-        public WhereClause Limit(int index = 1);
-    }
-
-    #endregion
-
 }

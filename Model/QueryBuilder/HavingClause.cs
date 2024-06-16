@@ -1,29 +1,13 @@
 ﻿namespace Backend.Model.QueryBuilder
 {
-    #region Having
-    public interface IHavingClause : IQueryClause
-    {
-        public HavingClause OpenBracket();
-        public HavingClause CloseBracket();
-        public HavingClause EqualsTo(string field, string value);
-        public HavingClause GreaterThan(string field, string value);
-        public HavingClause GreaterEqualTo(string field, string value);
-        public HavingClause SmallerThan(string field, string value);
-        public HavingClause SmallerEqualTo(string field, string value);
-        public HavingClause IsNull(string field);
-        public HavingClause IsNotNull(string field);
-        public HavingClause OR();
-        public HavingClause AND();
-        public HavingClause NOT();
-        public HavingClause Limit(int index = 1);
-    }
-    public class HavingClause : AbstractConditionalClause, IHavingClause
+    public class HavingClause : AbstractConditionalClause
     {
         public override int Order => 5;
         public HavingClause() { }
         public HavingClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            Clauses = clause.Clauses;
+            TransferClauses(ref clause.Clauses);
+            TransferParameters(ref _parameters);
             Clauses.Add(this);
             _bits.Add("HAVING");
         }
@@ -36,7 +20,6 @@
         private new HavingClause Condition(string field, string value, string oprt) => (HavingClause)base.Condition(field, value, oprt);
         public new HavingClause IsNull(string field) => (HavingClause)base.IsNull(field);
         public new HavingClause IsNotNull(string field) => (HavingClause)base.IsNotNull(field);
-        public new HavingClause Limit(int index = 1) => (HavingClause)base.Limit(index);
         public new HavingClause OR() => (HavingClause)LogicalOperator("OR");
         public new HavingClause AND() => (HavingClause)LogicalOperator("AND");
         public new HavingClause NOT() => (HavingClause)LogicalOperator("NOT");
@@ -45,5 +28,5 @@
         public override string ToString() => "HAVING CLAUSE";
 
     }
-    #endregion
+
 }
