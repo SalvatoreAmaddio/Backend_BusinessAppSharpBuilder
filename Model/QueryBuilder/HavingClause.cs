@@ -1,4 +1,4 @@
-﻿namespace Backend.Model.QueryBuilder
+﻿namespace Backend.Model
 {
     public class HavingClause : AbstractConditionalClause
     {

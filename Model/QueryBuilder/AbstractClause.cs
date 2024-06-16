@@ -141,42 +141,42 @@ namespace Backend.Model
     {
         public AbstractConditionalClause() { }
         public AbstractConditionalClause(ISQLModel model) : base(model) { }
-        protected AbstractConditionalClause EqualsTo(string field, string value) => Condition(field, value, "=");
-        protected AbstractConditionalClause NotEqualsTo(string field, string value) => Condition(field, value, "!=");
-        protected AbstractConditionalClause GreaterThan(string field, string value) => Condition(field, value, ">");
-        protected AbstractConditionalClause GreaterEqualTo(string field, string value) => Condition(field, value, ">=");
-        protected AbstractConditionalClause SmallerThan(string field, string value) => Condition(field, value, "<");
-        protected AbstractConditionalClause SmallerEqualTo(string field, string value) => Condition(field, value, "<=");
-        protected AbstractConditionalClause IsNull(string field)
+        public AbstractConditionalClause EqualsTo(string field, string value) => Condition(field, value, "=");
+        public AbstractConditionalClause NotEqualsTo(string field, string value) => Condition(field, value, "!=");
+        public AbstractConditionalClause GreaterThan(string field, string value) => Condition(field, value, ">");
+        public AbstractConditionalClause GreaterEqualTo(string field, string value) => Condition(field, value, ">=");
+        public AbstractConditionalClause SmallerThan(string field, string value) => Condition(field, value, "<");
+        public AbstractConditionalClause SmallerEqualTo(string field, string value) => Condition(field, value, "<=");
+        public AbstractConditionalClause IsNull(string field)
         {
             _bits.Add($"{field} IS NULL");
             return this;
         }
-        protected AbstractConditionalClause IsNotNull(string field)
+        public AbstractConditionalClause IsNotNull(string field)
         {
             _bits.Add($"{field} IS NOT NULL");
             return this;
         }
-        protected AbstractConditionalClause Condition(string field, string value, string oprt)
+        public AbstractConditionalClause Condition(string field, string value, string oprt)
         {
             _bits.Add($"{field} {oprt} {value}");
             return this;
         }
 
-        protected AbstractConditionalClause LogicalOperator(string oprt)
+        public AbstractConditionalClause LogicalOperator(string oprt)
         {
             _bits.Add(oprt);
             return this;
         }
-        protected AbstractConditionalClause OR() => LogicalOperator("OR");
-        protected AbstractConditionalClause AND() => LogicalOperator("AND");
-        protected AbstractConditionalClause NOT() => LogicalOperator("NOT");
-        protected AbstractConditionalClause OpenBracket()
+        public AbstractConditionalClause OR() => LogicalOperator("OR");
+        public AbstractConditionalClause AND() => LogicalOperator("AND");
+        public AbstractConditionalClause NOT() => LogicalOperator("NOT");
+        public AbstractConditionalClause OpenBracket()
         {
             _bits.Add("(");
             return this;
         }
-        protected AbstractConditionalClause CloseBracket()
+        public AbstractConditionalClause CloseBracket()
         {
             _bits.Add(")");
             return this;

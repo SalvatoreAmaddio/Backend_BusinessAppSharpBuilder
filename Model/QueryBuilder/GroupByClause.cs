@@ -1,6 +1,4 @@
-﻿using Backend.Model.QueryBuilder;
-
-namespace Backend.Model
+﻿namespace Backend.Model
 {
     public class GroupByClause : AbstractClause
     {
