@@ -5,9 +5,9 @@
         public override int Order => 1;
         public SelectClause() => Clauses.Add(this);
         public SelectClause(ISQLModel model) : base(model) => _bits.Add("SELECT");
-        public SelectClause(InsertClause clause, ISQLModel model) : this(model)
+        public SelectClause(AbstractClause clause, ISQLModel model) : this(model)
         {
-            TransferClauses(ref clause.Clauses);
+            TransferClauses(ref clause);
             TransferParameters(ref _parameters);
             Clauses.Add(this);
         }
@@ -35,12 +35,17 @@
             _bits.Add($"Count(*)");
             return this;
         }
-        public SelectClause Sum(string field)
+        public SelectClause Count(string field, string? alias = null) => FormulaAlias(field, alias);
+        public SelectClause Sum(string field, string? alias = null) => FormulaAlias(field, alias);
+        private SelectClause FormulaAlias(string field, string? alias = null)
         {
-            _bits.Add($"sum({field})");
+            if (string.IsNullOrEmpty(alias))
+                _bits.Add($"sum({field})");
+            else
+                _bits.Add($"sum({field}) AS {alias}");
             return this;
-        }
 
+        }
         public FromClause From(ISQLModel? model = null)
         {
             if (_bits.Count == 1) All();
@@ -51,7 +56,6 @@
         public GroupByClause GroupBy() => From().GroupBy();
         public OrderByClause OrderBy() => From().OrderBy();
         public LimitClause Limit(int limit = 1) => From().Limit(limit);
-
         public override string AsString()
         {
             sb.Clear();
@@ -72,5 +76,4 @@
         public override string ToString() => "SELECT CLAUSE";
 
     }
-
 }

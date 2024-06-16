@@ -1,6 +1,4 @@
-﻿using Backend.Model.QueryBuilder;
-
-namespace Backend.Model
+﻿namespace Backend.Model
 {
     public class OrderByClause : AbstractClause
     {
@@ -8,7 +6,7 @@ namespace Backend.Model
         public OrderByClause() { }
         public OrderByClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            TransferClauses(ref clause.Clauses);
+            TransferClauses(ref clause);
             TransferParameters(ref _parameters);
             Clauses.Add(this);
             _bits.Add("ORDER BY");

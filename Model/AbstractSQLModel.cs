@@ -26,7 +26,7 @@ namespace Backend.Model
         {
             RecordCountQry = this.CountAll().From().Statement();
             SelectQry = this.Select().All().From().Statement();
-            InsertQry = this.Insert().AllFields().Values().Statement();
+            InsertQry = this.Insert().All().Values().Statement();
             UpdateQry = this.Update().AllFields().Where().This().Statement();
             DeleteQry = this.Delete().From().Where().This().Statement();
         }

@@ -34,13 +34,13 @@ namespace Backend.Model
     public abstract class AbstractClause : IQueryClause
     {
         public abstract int Order { get; }
-        public List<QueryParameter> _parameters = [];
+        protected List<QueryParameter> _parameters = [];
         protected List<string> _bits = [];
         protected StringBuilder sb = new();
         protected ISQLModel _model = null!;
         protected string TableName { get; } = string.Empty;
         protected string TableKey { get; } = string.Empty;
-        public Clauses Clauses = [];
+        protected Clauses Clauses = [];
         public AbstractClause() { }
         public AbstractClause(ISQLModel model)
         {
@@ -50,7 +50,7 @@ namespace Backend.Model
             TableKey = model?.GetPrimaryKey()?.Name ?? throw new NullReferenceException("PK is null");
         }
 
-        protected void TransferClauses(ref Clauses clauses) => this.Clauses = clauses;
+        protected void TransferClauses(ref AbstractClause clause) => this.Clauses = clause.Clauses;
         protected void TransferParameters(ref List<QueryParameter> parameters) => this._parameters = parameters;
         public void AddParameter(string placeholder, object? value) => _parameters.Add(new(placeholder, value));
         public List<QueryParameter> Params() => _parameters;

@@ -1,21 +1,13 @@
 ﻿namespace Backend.Model
 {
     #region Insert
-    public interface IInsertClause : IQueryClause
-    {
-        public InsertClause AllFields();
-        public InsertClause Fields(params string[] fields);
-        public InsertClause Values(bool includeFields = true);
-        public InsertClause RowValues(params string[] fields);
-        public SelectClause Select();
-    }
-    public class InsertClause : AbstractClause, IInsertClause
+    public class InsertClause : AbstractClause
     {
         public override int Order => 0;
         public InsertClause() { }
         public InsertClause(ISQLModel model) : base(model) => _bits.Add($"INSERT INTO {model.GetTableName()}");
 
-        public InsertClause AllFields()
+        public InsertClause All()
         {
             _bits.Add("(");
             string pkName = _model.GetPrimaryKey()?.Name ?? "";

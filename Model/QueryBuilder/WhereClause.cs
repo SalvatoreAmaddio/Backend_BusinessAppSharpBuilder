@@ -6,7 +6,7 @@
         public WhereClause() { }
         public WhereClause(AbstractClause clause, ISQLModel model) : base(model)
         {
-            TransferClauses(ref clause.Clauses);
+            TransferClauses(ref clause);
             TransferParameters(ref _parameters);
             Clauses.Add(this);
             _bits.Add("WHERE");
