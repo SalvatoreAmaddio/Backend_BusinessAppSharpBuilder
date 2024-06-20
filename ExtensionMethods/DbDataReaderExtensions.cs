@@ -47,6 +47,18 @@ namespace Backend.ExtensionMethods
             }
 
         }
+        public static int TryFetchInt32(this DbDataReader reader, int index)
+        {
+            try
+            {
+                return reader.GetInt32(index);
+            }
+            catch
+            {
+                return 0;
+            }
+
+        }
 
         public static double TryFetchDouble(this DbDataReader reader, int index)
         {
