@@ -12,7 +12,7 @@ namespace Backend.Model
     /// </summary>
     public abstract class AbstractSQLModel : ISQLModel
     {
-        private readonly List<SimpleTableField> emptyFields = [];
+        private readonly List<SimpleTableField> _emptyFields = [];
 
         #region Properties
         public string SelectQry { get; set; } = string.Empty;
@@ -47,7 +47,7 @@ namespace Backend.Model
         }
         public TableField? GetPrimaryKey()
         {
-            PropertyInfo? prop = _getProperties().Where(s => s.GetCustomAttribute<PK>() != null).FirstOrDefault();
+            PropertyInfo? prop = GetProperties().Where(s => s.GetCustomAttribute<PK>() != null).FirstOrDefault();
             if (prop == null) return null;
             AbstractField? field = prop.GetCustomAttribute<PK>();
             return (field != null) ? new TableField(field, prop, this) : null;
@@ -59,24 +59,24 @@ namespace Backend.Model
         }
         public IEnumerable<PropertyInfo> GetPropertiesInfo()
         {
-            foreach (PropertyInfo prop in _getProperties())
+            foreach (PropertyInfo prop in GetProperties())
                 yield return prop;
         }
-        public IEnumerable<ITableField> GetTableFields() => _getTableFieldsAs<Field>();
-        public IEnumerable<ITableField> GetForeignKeys() => _getTableFieldsAs<FK>();
+        public IEnumerable<ITableField> GetTableFields() => GetTableFieldsAs<Field>();
+        public IEnumerable<ITableField> GetForeignKeys() => GetTableFieldsAs<FK>();
         private IEnumerable<PropertyInfo> GetMandatoryFields()
         {
-            foreach (PropertyInfo prop in _getProperties())
+            foreach (PropertyInfo prop in GetProperties())
             {
                 var field = prop.GetCustomAttribute<Mandatory>();
                 if (field != null)
                     yield return prop;
             }
         }
-        protected PropertyInfo[] _getProperties() => GetType().GetProperties();
+        protected PropertyInfo[] GetProperties() => GetType().GetProperties();
         public IEnumerable<string> GetEntityFieldNames()
         {
-            foreach (PropertyInfo prop in _getProperties())
+            foreach (PropertyInfo prop in GetProperties())
             {
                 AbstractField? field = prop.GetCustomAttribute<AbstractField>();
                 if (field != null)
@@ -89,7 +89,7 @@ namespace Backend.Model
         }
         public IEnumerable<ITableField> GetEntityFields()
         {
-            foreach (PropertyInfo prop in _getProperties())
+            foreach (PropertyInfo prop in GetProperties())
             {
                 AbstractField? field = prop.GetCustomAttribute<AbstractField>();
                 if (field != null)
@@ -102,10 +102,10 @@ namespace Backend.Model
                 }
             }
         }
-        private IEnumerable<ITableField> _getTableFieldsAs<F>() where F : AbstractField
+        private IEnumerable<ITableField> GetTableFieldsAs<F>() where F : AbstractField
         {
             bool isForeignKey = typeof(F) == typeof(FK);
-            foreach (PropertyInfo prop in _getProperties())
+            foreach (PropertyInfo prop in GetProperties())
             {
                 AbstractField? field = prop.GetCustomAttribute<F>();
                 if (field != null) 
@@ -115,9 +115,7 @@ namespace Backend.Model
                 }
             }
         }
-
         public bool IsNewRecord() => (long?)GetPrimaryKey()?.GetValue() == 0;
-        
         public override bool Equals(object? obj)
         {
             if (obj is not AbstractSQLModel other) return false;
@@ -126,14 +124,12 @@ namespace Backend.Model
             if (value == null) return false;
             return value == value2;
         }
-
         public override int GetHashCode() => HashCode.Combine(GetPrimaryKey()?.GetValue());
-
-        public virtual void SetParameters(List<QueryParameter>? parameters) 
+        public virtual void SetParameters(List<QueryParameter>? parameters)
         {
             parameters?.Add(new(GetPrimaryKey()?.Name!, GetPrimaryKey()?.GetValue()));
 
-            foreach(ITableField field in GetTableFields()) 
+            foreach (ITableField field in GetTableFields())
                 parameters?.Add(new(field.Name, field.GetValue()));
 
             foreach (ITableField field in GetForeignKeys()) 
@@ -142,53 +138,50 @@ namespace Backend.Model
                 parameters?.Add(new(fk_field.Name, fk_field.PK?.GetValue()));
             }
         }
-
         public string GetEmptyMandatoryFields() 
         {
             StringBuilder sb = new();
 
-            foreach(SimpleTableField field in emptyFields) 
+            foreach(SimpleTableField field in _emptyFields) 
                 sb.Append($"- {field.Name}\n");
 
             return sb.ToString();
         }
-
         public virtual bool AllowUpdate()
         {
-            emptyFields.Clear();
+            _emptyFields.Clear();
 
-            foreach(var field in GetMandatoryFields()) 
+            foreach (var field in GetMandatoryFields())
             {
                 string name = field.Name;
                 object? value = field.GetValue(this);
 
                 if (value == null) 
                 {
-                    emptyFields.Add(new(name,value, field));
+                    _emptyFields.Add(new(name,value, field));
                     continue;
                 }
 
                 if (field.PropertyType == typeof(string)) 
                     if (string.IsNullOrEmpty(value.ToString())) 
                     {
-                        emptyFields.Add(new(name, value, field));
+                        _emptyFields.Add(new(name, value, field));
                         continue;
                     }
 
                 if (field.PropertyType == typeof(ISQLModel))
                     if (((ISQLModel)field).IsNewRecord()) 
                     {
-                        emptyFields.Add(new(name, value, field));
+                        _emptyFields.Add(new(name, value, field));
                         continue;
                     }
             }
 
-            return emptyFields.Count == 0;
+            return _emptyFields.Count == 0;
         }
-
         public virtual void Dispose()
         {
-            emptyFields.Clear();
+            _emptyFields.Clear();
             GC.SuppressFinalize(this);
         }
 

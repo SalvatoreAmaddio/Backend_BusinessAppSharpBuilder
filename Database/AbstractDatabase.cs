@@ -15,7 +15,6 @@ namespace Backend.Database
         protected event OnDatabaseConnectionOpen? OnConnectionOpenEvent;
         public virtual string DatabaseName { get; set; } = string.Empty;
         public ISQLModel Model { get; set; } = Model;
-
         public Type ModelType => Model.GetType();
         public MasterSource MasterSource { get; protected set; } = [];
 
@@ -94,6 +93,7 @@ namespace Backend.Database
             using (DbConnection connection = await CreateConnectionObjectAsync())
             {
                 await connection.OpenAsync();
+                OnConnectionOpenEvent?.Invoke(this, new(connection, CRUD.None));
                 using (DbCommand cmd = connection.CreateCommand())
                 {
                     SetCommandWithParameters(cmd, sql, parameters);
@@ -116,6 +116,7 @@ namespace Backend.Database
             using (DbConnection connection = CreateConnectionObject())
             {
                 connection.Open();
+                OnConnectionOpenEvent?.Invoke(this, new(connection, CRUD.None));
                 using (DbTransaction transaction = connection.BeginTransaction())
                 {
                     using (DbCommand cmd = connection.CreateCommand())
@@ -138,6 +139,7 @@ namespace Backend.Database
             using (DbConnection connection = await CreateConnectionObjectAsync())
             {
                 await connection.OpenAsync();
+                OnConnectionOpenEvent?.Invoke(this, new(connection, CRUD.None));
                 using (DbTransaction transaction = await connection.BeginTransactionAsync())
                 {
                     using (DbCommand cmd = connection.CreateCommand())
@@ -165,6 +167,7 @@ namespace Backend.Database
             using (DbConnection connection = CreateConnectionObject())
             {
                 connection.Open();
+                OnConnectionOpenEvent?.Invoke(this, new(connection, CRUD.None));
                 using (DbTransaction transaction = connection.BeginTransaction())
                 {
                     using (DbCommand cmd = connection.CreateCommand())
@@ -261,6 +264,7 @@ namespace Backend.Database
             using (DbConnection connection = await CreateConnectionObjectAsync())
             {
                 await connection.OpenAsync();
+                OnConnectionOpenEvent?.Invoke(this, new(connection, CRUD.None));
                 using (DbTransaction transaction = await connection.BeginTransactionAsync())
                 {
                     using (DbCommand cmd = connection.CreateCommand())
@@ -290,6 +294,7 @@ namespace Backend.Database
             using (DbConnection connection = CreateConnectionObject())
             {
                 connection.Open();
+                OnConnectionOpenEvent?.Invoke(this, new(connection, CRUD.None));
                 using (DbTransaction transaction = connection.BeginTransaction())
                 {
                     using (DbCommand cmd = connection.CreateCommand())
@@ -367,6 +372,7 @@ namespace Backend.Database
         {
             OnConnectionOpenEvent = null;
             MasterSource.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

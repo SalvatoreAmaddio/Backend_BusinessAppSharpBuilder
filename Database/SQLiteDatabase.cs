@@ -45,6 +45,12 @@ namespace Backend.Database
 
         private void OnConnectionOpen(object? sender, DatabaseEventArgs e)
         {
+            using (var command = e.Connection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA journal_mode=WAL;";
+                command.ExecuteNonQuery();
+            }
+
             if (e.Crud != CRUD.DELETE) return;
             using (var command = e.Connection.CreateCommand())
             {
