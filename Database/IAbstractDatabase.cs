@@ -121,6 +121,8 @@ namespace Backend.Database
         /// <exception cref="NoModelException">Thrown if the <see cref="Model"/> is null.</exception>
         public void Crud(CRUD crud, string? sql = null, List<QueryParameter>? parameters = null);
 
+        public Task<bool> CrudAsync(CRUD crud, string? sql = null, List<QueryParameter>? parameters = null);
+
         /// <summary>
         /// It performs an aggregate query against the database. This method is meant to return one value only.
         /// <para/>

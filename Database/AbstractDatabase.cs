@@ -243,6 +243,62 @@ namespace Backend.Database
             }
         }
 
+        public async Task<bool> CrudAsync(CRUD crud, string? sql = null, List<QueryParameter>? parameters = null)
+        {
+            if (Model == null) return false;
+
+            if (crud == CRUD.INSERT || crud == CRUD.UPDATE)
+                if (!Model.AllowUpdate()) return false;
+
+            long? lastID = null;
+            if (string.IsNullOrEmpty(sql))
+            {
+                switch (crud)
+                {
+                    case CRUD.INSERT:
+                        sql = Model.InsertQry;
+                        break;
+                    case CRUD.UPDATE:
+                        sql = Model.UpdateQry;
+                        break;
+                    case CRUD.DELETE:
+                        sql = Model.DeleteQry;
+                        break;
+                }
+            }
+
+            using (DbConnection connection = await CreateConnectionObjectAsync())
+            {
+                await connection.OpenAsync();
+                OnConnectionOpenEvent?.Invoke(this, new(connection, crud));
+                using (DbTransaction transaction = await connection.BeginTransactionAsync())
+                {
+                    using (DbCommand cmd = connection.CreateCommand())
+                    {
+                        cmd.Transaction = transaction;
+                        SetCommandWithParameters(cmd, sql!, parameters);
+                        await cmd.ExecuteNonQueryAsync();
+                        lastID = (crud == CRUD.INSERT) ? RetrieveLastInsertedID(connection, transaction, LastIDQry()) : null;
+                    }
+                    try
+                    {
+                        await transaction.CommitAsync();
+                        if (lastID != null)
+                            Model?.GetPrimaryKey()?.SetValue(lastID);
+                        UpdateMasterSource(crud);
+
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("An error occurred: " + ex.Message);
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+                }
+            }
+        }
+
         public long? CountRecords(string? sql = null, List<QueryParameter>? parameters = null)
         {
             if (string.IsNullOrEmpty(sql) && Model != null)
