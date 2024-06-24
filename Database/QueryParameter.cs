@@ -24,4 +24,5 @@
         Value == @object.Value;
         public override int GetHashCode() => HashCode.Combine(Placeholder, Value);
     }
+
 }
