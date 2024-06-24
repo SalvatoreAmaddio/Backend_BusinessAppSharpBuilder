@@ -8,18 +8,35 @@ namespace Backend.Controller
 {
     public abstract class AbstractSQLModelController : IAbstractSQLModelController
     {
+        #region Variables
         protected bool _allowNewRecord = true;
-        public IAbstractDatabase Db { get; protected set; } = null!;
+        #endregion
+
+        #region Properties
+        public IAbstractDatabase Db { get; protected set; } = null!;        
         public abstract int DatabaseIndex { get; }
         public IRecordSource Source { get; protected set; }
         protected INavigator Navigator => Source.Navigate();
+        public virtual bool AllowNewRecord
+        {
+            get => _allowNewRecord;
+            set 
+            {
+                _allowNewRecord = value;
+                Navigator.AllowNewRecord = value;
+            } 
+        }
+        public virtual ISQLModel? CurrentModel { get; set; }
+        public virtual string Records { get; protected set; } = string.Empty;
+        #endregion
+
         public AbstractSQLModelController()
         {
-            try 
+            try
             {
                 Db = DatabaseManager.Get(DatabaseIndex);
             }
-            catch (IndexOutOfRangeException e) 
+            catch (IndexOutOfRangeException e)
             {
                 Console.WriteLine(e.Message);
             }
@@ -29,20 +46,9 @@ namespace Backend.Controller
         }
 
         protected virtual IRecordSource InitSource() => new RecordSource(Db, this);
-
-        public virtual bool AllowNewRecord 
-        { 
-            get => _allowNewRecord; 
-            set 
-            {
-                _allowNewRecord = value;
-                Navigator.AllowNewRecord = value;
-            } 
-        }
-
-        public virtual ISQLModel? CurrentModel { get; set; }
-        public virtual string Records { get; protected set; } = string.Empty;
         public ICollection<ISQLModel> SourceAsCollection() => (ICollection<ISQLModel>)Source;
+
+        #region GoTo
         protected virtual bool CanMove() 
         {
             if (CurrentModel != null)
@@ -135,7 +141,9 @@ namespace Backend.Controller
             Records = Source.RecordPositionDisplayer();
             return true;
         }
+        #endregion
 
+        #region CRUD Operations
         public void DeleteRecord(string? sql = null, List<QueryParameter>? parameters = null)
         {
             if (CurrentModel == null) throw new NoModelException();
@@ -162,6 +170,7 @@ namespace Backend.Controller
             GoAt(CurrentModel);
             return true;
         }
+        #endregion
 
         public virtual void Dispose()
         {
