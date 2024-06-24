@@ -13,32 +13,18 @@ namespace Backend.Database
     public abstract class AbstractDatabase(ISQLModel Model) : IAbstractDatabase
     {
         protected event OnDatabaseConnectionOpen? OnConnectionOpenEvent;
+
+        #region Properties
         public virtual string DatabaseName { get; set; } = string.Empty;
         public ISQLModel Model { get; set; } = Model;
         public Type ModelType => Model.GetType();
         public MasterSource MasterSource { get; protected set; } = [];
+        #endregion
 
-        public void ReplaceRecords(IEnumerable<ISQLModel> newRecords) 
-        {
-            MasterSource.Clear();
-            MasterSource.AddRange(newRecords);
-        }
-
+        #region Connection
         public abstract string ConnectionString();
         public abstract DbConnection CreateConnectionObject();
         public Task<DbConnection> CreateConnectionObjectAsync() => Task.FromResult(CreateConnectionObject());
-        private void SetCommandWithParameters(DbCommand cmd, string sql, List<QueryParameter>? parameters)
-        {
-            if (Model == null) throw new NoModelException();
-            cmd.CommandText = sql;
-            if (parameters == null)
-            {
-                parameters = [];
-                Model.SetParameters(parameters);
-            }
-
-            SetParameters(cmd, parameters);
-        }
 
         /// <summary>
         /// Use this method to check if the connection can be made.
@@ -60,7 +46,7 @@ namespace Backend.Database
                 }
             }
         }
-
+        
         /// <summary>
         /// Use this method to check if the connection can be made.
         /// <para><c>IMPORTANT:</c></para> the connection closes as soon as the method terminates.
@@ -70,18 +56,33 @@ namespace Backend.Database
         {
             using (DbConnection connection = await CreateConnectionObjectAsync())
             {
-                try 
+                try
                 {
                     await connection.OpenAsync();
                     return true;
                 }
-                catch 
+                catch
                 {
                     return false;
                 }
             }
         }
+        #endregion
 
+        private void SetCommandWithParameters(DbCommand cmd, string sql, List<QueryParameter>? parameters)
+        {
+            if (Model == null) throw new NoModelException();
+            cmd.CommandText = sql;
+            if (parameters == null)
+            {
+                parameters = [];
+                Model.SetParameters(parameters);
+            }
+
+            SetParameters(cmd, parameters);
+        }
+
+        #region RetrieveRecords
         public async IAsyncEnumerable<ISQLModel> RetrieveAsync(string? sql = null, List<QueryParameter>? parameters = null)
         {
             if (Model == null) throw new NoModelException();
@@ -133,7 +134,9 @@ namespace Backend.Database
                 }
             }
         }
+        #endregion
 
+        #region ExecuteQuery
         public async Task ExecuteQueryAsync(string sql, List<QueryParameter>? parameters = null)
         {
             using (DbConnection connection = await CreateConnectionObjectAsync())
@@ -189,7 +192,9 @@ namespace Backend.Database
                 }
             }
         }
+        #endregion
 
+        #region CRUD
         public void Crud(CRUD crud, string? sql = null, List<QueryParameter>? parameters = null)
         {
             if (Model == null) throw new NoModelException();
@@ -298,7 +303,23 @@ namespace Backend.Database
                 }
             }
         }
+        private static long? RetrieveLastInsertedID(DbConnection connection, DbTransaction transaction, string sql)
+        {
+            using (DbCommand cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = sql;
+                cmd.Transaction = transaction;
+                return (long?)cmd.ExecuteScalar();
+            }
+        }
+        /// <summary>
+        /// Override this method to return the correct statement to retrieve the last inserted id.
+        /// </summary>
+        /// <returns>A string representing the SQL Statement to retrieve the last inserted id.</returns>
+        protected abstract string LastIDQry();
+        #endregion
 
+        #region Aggregate Queries
         public long? CountRecords(string? sql = null, List<QueryParameter>? parameters = null)
         {
             if (string.IsNullOrEmpty(sql) && Model != null)
@@ -306,7 +327,6 @@ namespace Backend.Database
             if (string.IsNullOrEmpty(sql)) throw new Exception("No SQL Statement provided");
             return (long?)AggregateQuery(sql, parameters);
         }
-
         public async Task<long?> CountRecordsAsync(string? sql = null, List<QueryParameter>? parameters = null)
         {
             if (string.IsNullOrEmpty(sql) && Model != null)
@@ -343,7 +363,6 @@ namespace Backend.Database
                 }
             }
         }
-
         public object? AggregateQuery(string sql, List<QueryParameter>? parameters = null)
         {
             object? value = null;
@@ -373,16 +392,7 @@ namespace Backend.Database
                 }
             }
         }
-
-        private static long? RetrieveLastInsertedID(DbConnection connection, DbTransaction transaction, string sql)
-        {
-            using (DbCommand cmd = connection.CreateCommand())
-            {
-                cmd.CommandText = sql;
-                cmd.Transaction = transaction;
-                return (long?)cmd.ExecuteScalar();
-            }
-        }
+        #endregion
 
         private static void SetParameters(DbCommand cmd, List<QueryParameter>? parameters)
         {
@@ -397,12 +407,7 @@ namespace Backend.Database
             }
         }
 
-        /// <summary>
-        /// Override this method to return the correct statement to retrieve the last inserted id.
-        /// </summary>
-        /// <returns>A string representing the SQL Statement to retrieve the last inserted id.</returns>
-        protected abstract string LastIDQry();
-
+        #region MasterSource
         /// <summary>
         /// Update the <see cref="MasterSource"/> property.
         /// </summary>
@@ -423,6 +428,12 @@ namespace Backend.Database
                 break;
             }
         }
+        public void ReplaceRecords(IEnumerable<ISQLModel> newRecords)
+        {
+            MasterSource.Clear();
+            MasterSource.AddRange(newRecords);
+        }
+        #endregion
 
         public void Dispose()
         {

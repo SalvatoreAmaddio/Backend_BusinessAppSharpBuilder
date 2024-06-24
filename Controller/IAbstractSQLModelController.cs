@@ -114,6 +114,9 @@ namespace Backend.Controller
         /// <exception cref="NoModelException">Thrown if the <see cref="Model"/> is null.</exception>
         public void DeleteRecord(string? sql = null, List<QueryParameter>? parameters = null);
 
+        /// <summary>
+        /// Returns the <see cref="Source"/> Property as a <see cref="ICollection{ISQLModel}"/>
+        /// </summary>
         public ICollection<ISQLModel> SourceAsCollection();
     }
 }

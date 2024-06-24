@@ -1,5 +1,4 @@
-﻿
-namespace Backend.Model
+﻿namespace Backend.Model
 {
     /// <summary>
     /// This interface defines a set or properties and methods that a User class should implement.

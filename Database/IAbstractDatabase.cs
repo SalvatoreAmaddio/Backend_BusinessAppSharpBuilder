@@ -11,9 +11,6 @@ namespace Backend.Database
     /// </summary>
     public interface IAbstractDatabase : IDisposable
     {
-        public Task ExecuteQueryAsync(string sql, List<QueryParameter>? parameters = null);
-        public void ExecuteQuery(string sql, List<QueryParameter>? parameters = null);
-
         public Type ModelType { get; }
 
         /// <summary>
@@ -37,6 +34,9 @@ namespace Backend.Database
         /// </summary>
         /// <value>A Recordsource object</value>
         public MasterSource MasterSource { get; }
+
+        public Task ExecuteQueryAsync(string sql, List<QueryParameter>? parameters = null);
+        public void ExecuteQuery(string sql, List<QueryParameter>? parameters = null);
 
         /// <summary>
         /// Relace the Records in the <see cref="Source.MasterSource"/>
@@ -120,7 +120,6 @@ namespace Backend.Database
         /// <param name="parameters"> A List of object parameter, it can be null</param>
         /// <exception cref="NoModelException">Thrown if the <see cref="Model"/> is null.</exception>
         public void Crud(CRUD crud, string? sql = null, List<QueryParameter>? parameters = null);
-
         public Task<bool> CrudAsync(CRUD crud, string? sql = null, List<QueryParameter>? parameters = null);
 
         /// <summary>

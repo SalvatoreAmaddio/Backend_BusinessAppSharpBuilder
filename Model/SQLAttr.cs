@@ -8,9 +8,7 @@
     public class Table(string name) : Attribute 
     {
         private readonly string _name = name;
-
         public override string ToString() => _name;
-
     }
 
 
@@ -28,8 +26,7 @@
     /// This is pivotal for auto-generated queries.
     /// </summary>
     public class Field : AbstractField
-    {
-    }
+    { }
 
     /// <summary>
     /// This attribute is used to associate one <see cref="AbstractSQLModel"/>'s property to the Primary Key in your table to a Table in your Database.
@@ -38,14 +35,12 @@
     /// N.B: Only one property can have this attribute.
     /// </summary>
     public class PK : AbstractField
-    {
-    }
+    { }
 
     /// <summary>
     /// This attribute is used to associate a <see cref="AbstractSQLModel"/>'s property to a Foreign Key in your table to a Table in your Database.
     /// This is pivotal auto-generated queries.
     /// </summary>
     public class FK : AbstractField
-    {
-    }
+    { }
 }

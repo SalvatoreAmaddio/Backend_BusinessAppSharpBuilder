@@ -12,6 +12,7 @@ namespace Backend.Model
     public interface ITableField
     {
         public FieldType FieldType { get; }
+     
         /// <summary>
         /// The name of the field.
         /// </summary>
