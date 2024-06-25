@@ -8,14 +8,20 @@ namespace Backend.Utils
 {
     public class Sys
     {
-        public static bool AttemptFileDelete(string filePath) 
+        public static void CreateFolder(string folderPath)
         {
-            try 
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+        }
+
+        public static bool AttemptFileDelete(string filePath)
+        {
+            try
             {
                 File.Delete(filePath);
                 return true;
             }
-            catch 
+            catch
             { 
                 return false;
             }
