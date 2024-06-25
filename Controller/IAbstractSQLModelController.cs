@@ -117,6 +117,6 @@ namespace Backend.Controller
         /// <summary>
         /// Returns the <see cref="Source"/> Property as a <see cref="ICollection{ISQLModel}"/>
         /// </summary>
-        public ICollection<ISQLModel> SourceAsCollection();
+        public ICollection<ISQLModel>? SourceAsCollection();
     }
 }

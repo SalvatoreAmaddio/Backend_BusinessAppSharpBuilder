@@ -3,6 +3,7 @@ using Backend.Exceptions;
 using Backend.Model;
 using Backend.Source;
 using Backend.Enums;
+using Backend.Events;
 
 namespace Backend.Controller
 {
@@ -30,6 +31,11 @@ namespace Backend.Controller
         public virtual string Records { get; protected set; } = string.Empty;
         #endregion
 
+        #region Events
+        public event AfterRecordNavigationEventHandler? AfterRecordNavigation;
+        public event BeforeRecordNavigationEventHandler? BeforeRecordNavigation;
+        #endregion
+
         public AbstractSQLModelController()
         {
             try
@@ -46,7 +52,17 @@ namespace Backend.Controller
         }
 
         protected virtual IRecordSource InitSource() => new RecordSource(Db, this);
-        public ICollection<ISQLModel> SourceAsCollection() => (ICollection<ISQLModel>)Source;
+        public ICollection<ISQLModel>? SourceAsCollection()
+        {
+            try
+            {
+                return (ICollection<ISQLModel>)Source;
+            }
+            catch 
+            {
+                return null;
+            }
+        }
 
         #region GoTo
         protected virtual bool CanMove() 
@@ -62,12 +78,18 @@ namespace Backend.Controller
         public virtual bool GoNext()
         {
             if (!CanMove()) return false;
+            if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoNext)) return false; //Event was cancelled
+
             bool moved = Navigator.MoveNext();
             if (!moved) 
             {
                 return Navigator.EOF ? GoNew() : false;                
             }
+
             CurrentModel = Navigator.Current;
+
+            if (InvokeAfterRecordNavigationEvent(RecordMovement.GoNext)) return false; //Event was cancelled
+
             Records = Source.RecordPositionDisplayer();
             return true;
         }
@@ -75,9 +97,15 @@ namespace Backend.Controller
         public virtual bool GoPrevious()
         {
             if (!CanMove()) return false;
+
+            if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoPrevious)) return false; //Event was cancelled
+
             bool moved = Navigator.MovePrevious();
             if (!moved) return false;
             CurrentModel = Navigator.Current;
+
+            if (InvokeAfterRecordNavigationEvent(RecordMovement.GoPrevious)) return false; //Event was cancelled
+
             Records = Source.RecordPositionDisplayer();
             return true;
         }
@@ -85,9 +113,15 @@ namespace Backend.Controller
         public virtual bool GoLast()
         {
             if (!CanMove()) return false;
+
+            if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoLast)) return false; //Event was cancelled
+
             bool moved = Navigator.MoveLast();
             if (!moved) return false;
             CurrentModel = Navigator.Current;
+
+            if (InvokeAfterRecordNavigationEvent(RecordMovement.GoLast)) return false; //Event was cancelled
+
             Records = Source.RecordPositionDisplayer();
             return true;
         }
@@ -95,13 +129,20 @@ namespace Backend.Controller
         public virtual bool GoFirst()
         {
             if (!CanMove()) return false;
+
+            if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoFirst)) return false; //Event was cancelled
+
             bool moved = Navigator.MoveFirst();
             if (!moved) 
             {
                 Records = Source.RecordPositionDisplayer();
                 return false;
             }
+
             CurrentModel = Navigator.Current;
+
+            if (InvokeAfterRecordNavigationEvent(RecordMovement.GoFirst)) return false; //Event was cancelled
+
             Records = Source.RecordPositionDisplayer();
             return true;
         }
@@ -109,9 +150,15 @@ namespace Backend.Controller
         public virtual bool GoNew()
         {
             if (!CanMove()) return false;
+
+            if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoNew)) return false; //Event was cancelled
+
             bool moved = Navigator.MoveNew();
             if (!moved) return false;
             CurrentModel = Navigator.Current;
+
+            if (InvokeAfterRecordNavigationEvent(RecordMovement.GoNew)) return false; //Event was cancelled
+
             Records = Source.RecordPositionDisplayer();
             return moved;   
         }
@@ -119,9 +166,15 @@ namespace Backend.Controller
         public virtual bool GoAt(int index)
         {
             if (!CanMove()) return false;
+
+            if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoAt)) return false; //Event was cancelled
+
             bool moved = Navigator.MoveAt(index);
             if (!moved) return false;
             CurrentModel = Navigator.Current;
+
+            if (InvokeAfterRecordNavigationEvent(RecordMovement.GoAt)) return false; //Event was cancelled
+
             Records = Source.RecordPositionDisplayer();
             return true;
         }
@@ -135,9 +188,18 @@ namespace Backend.Controller
                 Records = Source.RecordPositionDisplayer();
                 return false;
             }
+
             if (record.IsNewRecord()) return GoNew();
+
+            if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoAt)) return false; //Event was cancelled
+
             bool moved = Navigator.MoveAt(record);
+            if (!moved) return false;
+
             CurrentModel = record;
+
+            if (InvokeAfterRecordNavigationEvent(RecordMovement.GoAt)) return false; //Event was cancelled
+
             Records = Source.RecordPositionDisplayer();
             return true;
         }
@@ -151,7 +213,7 @@ namespace Backend.Controller
             Db.Crud(CRUD.DELETE, sql, parameters);
             if (Db.Model.IsNewRecord()) //this occurs in ListView objects when you add a new record but then decided to delete it.
             {
-                SourceAsCollection().Remove(Db.Model); //remove the record from the Source, thereof from the ListView
+                SourceAsCollection()?.Remove(Db.Model); //remove the record from the Source, thereof from the ListView
                 if (Navigator.BOF && !Navigator.NoRecords) GoFirst(); //The record is deleted, handle the direction that the Navigator object should point at.
                 else GoPrevious(); //if we still have records move back.
             }
@@ -172,11 +234,36 @@ namespace Backend.Controller
         }
         #endregion
 
+        #region Event Invokers
+        protected bool InvokeAfterRecordNavigationEvent(RecordMovement recordMovement)
+        {
+            AllowRecordMovementArgs args = new(recordMovement);
+            AfterRecordNavigation?.Invoke(this, args);
+            return args.Cancel; // if returns true, the event is cancelled
+        }
+
+        protected bool InvokeBeforeRecordNavigationEvent(RecordMovement recordMovement)
+        {
+            AllowRecordMovementArgs args = new(recordMovement);
+            BeforeRecordNavigation?.Invoke(this, args);
+            return args.Cancel; // if returns true, the event is cancelled
+        }
+        #endregion
+
+        #region Disposer
+        protected virtual void DisposeEvents() 
+        {
+            AfterRecordNavigation = null;
+            BeforeRecordNavigation = null;
+        }
+
         public virtual void Dispose()
         {
+            DisposeEvents();
             Source.Dispose();
             GC.SuppressFinalize(this);
         }
+        #endregion
 
     }
 }
