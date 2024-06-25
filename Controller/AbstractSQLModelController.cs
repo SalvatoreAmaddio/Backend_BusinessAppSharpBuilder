@@ -81,9 +81,12 @@ namespace Backend.Controller
             if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoNext)) return false; //Event was cancelled
 
             bool moved = Navigator.MoveNext();
-            if (!moved) 
+            if (!moved)
             {
-                return Navigator.EOF ? GoNew() : false;                
+                Records = Source.RecordPositionDisplayer();
+                if (Source.Count == 0)
+                    CurrentModel = null;
+                return Navigator.EOF ? GoNew() : false;
             }
 
             CurrentModel = Navigator.Current;
@@ -125,7 +128,15 @@ namespace Backend.Controller
             if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoLast)) return false; //Event was cancelled
 
             bool moved = Navigator.MoveLast();
-            if (!moved) return false;
+
+            if (!moved)
+            {
+                Records = Source.RecordPositionDisplayer();
+                if (Source.Count == 0)
+                    CurrentModel = null;
+                return false;
+            }
+
             CurrentModel = Navigator.Current;
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoLast)) return false; //Event was cancelled
@@ -141,9 +152,12 @@ namespace Backend.Controller
             if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoFirst)) return false; //Event was cancelled
 
             bool moved = Navigator.MoveFirst();
-            if (!moved) 
+
+            if (!moved)
             {
                 Records = Source.RecordPositionDisplayer();
+                if (Source.Count == 0)
+                    CurrentModel = null;
                 return false;
             }
 
@@ -162,7 +176,14 @@ namespace Backend.Controller
             if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoNew)) return false; //Event was cancelled
 
             bool moved = Navigator.MoveNew();
-            if (!moved) return false;
+
+            if (!moved)
+            {
+                Records = Source.RecordPositionDisplayer();
+                if (Source.Count == 0)
+                    CurrentModel = null;
+                return false;
+            }
             CurrentModel = Navigator.Current;
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoNew)) return false; //Event was cancelled
