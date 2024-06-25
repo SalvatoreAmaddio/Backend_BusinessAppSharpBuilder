@@ -102,7 +102,15 @@ namespace Backend.Controller
 
             bool moved = Navigator.MovePrevious();
             if (!moved) return false;
-            CurrentModel = Navigator.Current;
+
+            try 
+            {
+                CurrentModel = Navigator.Current;
+            }
+            catch 
+            { 
+                return false;
+            }
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoPrevious)) return false; //Event was cancelled
 

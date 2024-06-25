@@ -40,10 +40,10 @@ namespace Backend.Source
 
         public ISQLModel Current
         {
-            get 
+            get
             {
-               if (Index >= 0 && Index < _records.Length)
-                        return _records[Index];
+                if (Index >= 0 && Index < _records.Length)
+                    return _records[Index];
                 
                 throw new InvalidOperationException($"Invalid state: New Record: {IsNewRecord}; IsEmpty: {IsEmpty}; Index: {Index}");
             }
