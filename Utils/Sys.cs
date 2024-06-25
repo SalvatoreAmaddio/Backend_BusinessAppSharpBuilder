@@ -14,10 +14,11 @@ namespace Backend.Utils
                 Directory.CreateDirectory(folderPath);
         }
 
-        public static bool AttemptFileDelete(string filePath)
+        public static bool AttemptFileDelete(string? filePath)
         {
             try
             {
+                if (string.IsNullOrEmpty(filePath)) return true;
                 File.Delete(filePath);
                 return true;
             }
