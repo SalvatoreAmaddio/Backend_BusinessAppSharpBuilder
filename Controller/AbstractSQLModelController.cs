@@ -252,7 +252,7 @@ namespace Backend.Controller
                 Db?.MasterSource?.NotifyChildren(CRUD.DELETE, Db.Model); //notify children sources that the master source has changed.
         }
 
-        protected abstract void OnUIApplication(IAbstractDatabase? db, ISQLModel record);
+        protected abstract void OnUIApplication(EntityTree tree, ISQLModel record);
 
         private async void DeleteOrphan(ISQLModel? model)
         {
@@ -262,22 +262,21 @@ namespace Backend.Controller
                 IEnumerable<EntityTree> trees = DatabaseManager.Map.FetchParentsOfNode(model.GetType().Name);
                 Parallel.ForEachAsync(trees, async (tree, t) =>
                 {
-                    IAbstractDatabase? db = DatabaseManager.Find(tree.Name);
-                    IEnumerable<ISQLModel>? toRemove = db?.MasterSource.Where(s => FetchToRemove(s, model)).ToList();
+                    IEnumerable<ISQLModel>? toRemove = tree.GetRecordsHaving(model);
                     if (toRemove == null) return;
                     foreach (ISQLModel record in toRemove)
                     {
-                        await Task.Run(()=>DeleteOrphan(record));
+                        await Task.Run(() => DeleteOrphan(record), CancellationToken.None);
                         record.InvokeBeforeRecordDelete();
-                        db?.MasterSource.Remove(record);
-                        await Task.Delay(1);
+                        tree.RemoveFromMasterSource(record);
+                        await Task.Delay(1, CancellationToken.None);
                         try
                         {
-                            db?.MasterSource?.NotifyChildren(CRUD.DELETE, record);
+                            tree.NotifyChildren(record);
                         }
                         catch
                         {
-                            OnUIApplication(db, record);
+                            OnUIApplication(tree, record);
                         }
                     }
                 });
@@ -299,16 +298,6 @@ namespace Backend.Controller
                 //    }
                 //}
             });
-        }
-
-        private static bool FetchToRemove(ISQLModel model, ISQLModel? mod)
-        {
-            string? propName = mod?.GetTableName();
-            if (string.IsNullOrEmpty(propName)) return false;
-            object? obj = model.GetPropertyValue(propName);
-            if (obj == null) return false;
-            bool res = obj.Equals(mod);
-            return res;
         }
         public virtual bool AlterRecord(string? sql = null, List<QueryParameter>? parameters = null)
         {

@@ -1,4 +1,5 @@
-﻿using Backend.Model;
+﻿using Backend.Enums;
+using Backend.Model;
 
 namespace Backend.Database
 {
@@ -51,6 +52,7 @@ namespace Backend.Database
 
     public class EntityTree : IDisposable
     {
+        public IAbstractDatabase? Db => DatabaseManager.Find(Name);
         public Type Type { get; }
         public string Name => Type.Name;
         private readonly ISQLModel? _node;
@@ -122,6 +124,28 @@ namespace Backend.Database
         }
 
         public override string ToString() => $"EntityTree<{Name}>";
+
+        public IEnumerable<ISQLModel>? GetRecordsHaving(ISQLModel model) => Db?.MasterSource.Where(s => FetchToRemove(s, model)).ToList();
+
+        public void RemoveFromMasterSource(ISQLModel record) 
+        { 
+            Db?.MasterSource.Remove(record);
+        }
+        
+        public void NotifyChildren(ISQLModel record) 
+        {
+            Db?.MasterSource?.NotifyChildren(CRUD.DELETE, record);
+        }
+
+        private static bool FetchToRemove(ISQLModel model, ISQLModel? mod)
+        {
+            string? propName = mod?.GetTableName();
+            if (string.IsNullOrEmpty(propName)) return false;
+            object? obj = model.GetPropertyValue(propName);
+            if (obj == null) return false;
+            bool res = obj.Equals(mod);
+            return res;
+        }
 
         public void Dispose()
         {
