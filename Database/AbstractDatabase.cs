@@ -414,20 +414,21 @@ namespace Backend.Database
         private void UpdateMasterSource(CRUD crud)
         {
             if (MasterSource == null) return;
-            switch(crud)
+            switch (crud)
             {
                 case CRUD.INSERT:
                     MasterSource.Add(Model);
-                break;
+                    break;
                 case CRUD.UPDATE:
                     int index = MasterSource.IndexOf(Model);
                     if (index >= 0) MasterSource[index] = Model;
-                break;
+                    break;
                 case CRUD.DELETE:
                     MasterSource.Remove(Model);
-                break;
+                    break;
             }
         }
+
         public void ReplaceRecords(IEnumerable<ISQLModel> newRecords)
         {
             MasterSource.Clear();

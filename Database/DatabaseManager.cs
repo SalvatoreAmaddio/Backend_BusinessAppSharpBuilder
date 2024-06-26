@@ -107,6 +107,14 @@ namespace Backend.Database
                 Map.AddChild(new(db.ModelType));
             }
         }
+
+        public static void Dispose()
+        {
+            foreach (IAbstractDatabase db in lazyInstance.Value.Databases)
+                db.Dispose();
+            
+            Map.Dispose();
+        }
     }
 
 }

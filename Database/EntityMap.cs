@@ -2,7 +2,7 @@
 
 namespace Backend.Database
 {
-    public class EntityMap
+    public class EntityMap : IDisposable
     {
         private readonly List<EntityTree> _children = [];
 
@@ -27,9 +27,20 @@ namespace Backend.Database
                 child.PrintStructure();
             }
         }
+
+        public void Dispose()
+        {
+            foreach (var child in _children) 
+            { 
+                child.Dispose();
+            }
+            _children.Clear();
+            GC.SuppressFinalize(this);
+        }
+
     }
 
-    public class EntityTree
+    public class EntityTree : IDisposable
     {
         public Type Type { get; }
         public string Name => Type.Name;
@@ -94,6 +105,16 @@ namespace Backend.Database
 
         public override string ToString() => $"EntityTree<{Name}>";
 
+        public void Dispose()
+        {
+            foreach(var child in _children) 
+            { 
+                child.Dispose();
+            }
+
+            _children.Clear();
+            GC.SuppressFinalize(this);
+        }
     }
 
 }
