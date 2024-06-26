@@ -270,11 +270,11 @@ namespace Backend.Controller
                         record.InvokeBeforeRecordDelete();
                         db?.MasterSource.Remove(record);
                         await Task.Delay(1);
-                        try 
+                        try
                         {
                             db?.MasterSource?.NotifyChildren(CRUD.DELETE, record);
                         }
-                        catch 
+                        catch
                         {
                             OnUIApplication(db, record);
                         }
