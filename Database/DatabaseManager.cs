@@ -54,6 +54,8 @@ namespace Backend.Database
             await Task.WhenAll(tasks);
 
             for(int i = 0; i < tasks.Count; i++) Get(i).ReplaceRecords(tasks[i].Result);
+
+            MapUp();
         }
 
         /// <summary>
@@ -98,7 +100,7 @@ namespace Backend.Database
             return null;
         }
 
-        public static void MapUp()
+        private static void MapUp()
         {
             foreach (IAbstractDatabase db in lazyInstance.Value.Databases)
             {
