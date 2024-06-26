@@ -251,7 +251,7 @@ namespace Backend.Controller
                 Db?.MasterSource?.NotifyChildren(CRUD.DELETE, Db.Model); //notify children sources that the master source has changed.
         }
 
-        protected abstract void OnApplication(IAbstractDatabase? db, ISQLModel record);
+        protected abstract void OnUIApplication(IAbstractDatabase? db, ISQLModel record);
 
         private async void DeleteOrphan(ISQLModel? model)
         {
@@ -270,7 +270,14 @@ namespace Backend.Controller
                         record.InvokeBeforeRecordDelete();
                         db?.MasterSource.Remove(record);
                         await Task.Delay(1);
-                        OnApplication(db, record);
+                        try 
+                        {
+                            db?.MasterSource?.NotifyChildren(CRUD.DELETE, record);
+                        }
+                        catch 
+                        {
+                            OnUIApplication(db, record);
+                        }
                     }
                 });
 
