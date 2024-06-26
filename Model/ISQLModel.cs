@@ -138,9 +138,8 @@ namespace Backend.Model
         /// </summary>
         /// <returns>A string</returns>
         public string GetEmptyMandatoryFields();
-    }
 
-    /// <summary>
-    /// This interface defines a set of methods that help to construct a more complex query.
-    /// </summary>
+        public void InvokeBeforeRecordDelete();
+        public void InvokeAfterRecordDelete();
+    }
 }

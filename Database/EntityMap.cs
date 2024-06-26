@@ -20,6 +20,15 @@ namespace Backend.Database
             }
         }
 
+        public IEnumerable<EntityTree> FetchParentsOfNode(string name)
+        {
+            foreach (var child in _children)
+            {
+                EntityTree? node = child.FetchNode(name);
+                if (node != null) yield return child;
+            }
+        }
+
         public void PrintStructure()
         {
             foreach (var child in _children)
@@ -81,6 +90,15 @@ namespace Backend.Database
                     return true;
             }
             return false;
+        }
+        public EntityTree? FetchNode(string name)
+        {
+            foreach (var child in _children)
+            {
+                if (child.Type.Name.Equals(name))
+                    return child;
+            }
+            return null;
         }
 
         public EntityTree? FetchNode<T>()

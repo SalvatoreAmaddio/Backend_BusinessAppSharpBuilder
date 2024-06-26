@@ -79,8 +79,8 @@ namespace Backend.Database
         /// <param name="name">The name of the <see cref="IAbstractDatabase.Model"/>'s Type Name to find</param>
         /// <returns>An instance of <see cref="IAbstractDatabase"/> object. Returns null if the instance was not found.</returns>
         public static IAbstractDatabase? Find(string name) 
-        { 
-            foreach(IAbstractDatabase db in lazyInstance.Value.Databases) 
+        {
+            foreach (IAbstractDatabase db in lazyInstance.Value.Databases)
                 if (db.Model.GetType().Name.Equals(name)) return db;
             return null;
         }

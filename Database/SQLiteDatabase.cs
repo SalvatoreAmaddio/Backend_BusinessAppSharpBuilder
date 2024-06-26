@@ -88,5 +88,8 @@ namespace Backend.Database
             if (connection == null) return new SQLiteConnection(ConnectionString());
             return connection;
         }
+
+        public override string ToString() => $"SQLiteDatabase<{ModelType.Name}>";
+
     }
 }
