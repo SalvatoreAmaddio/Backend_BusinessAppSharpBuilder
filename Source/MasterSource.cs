@@ -31,6 +31,7 @@ namespace Backend.Source
         {
             Clear();
             Children.Clear();
+            GC.SuppressFinalize(this);
         }
     }
 }
