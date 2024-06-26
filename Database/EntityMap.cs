@@ -32,8 +32,11 @@ namespace Backend.Database
     public class EntityTree
     {
         public Type Type { get; }
+        public string Name => Type.Name;
         private readonly ISQLModel? _node;
         private readonly List<EntityTree> _children = [];
+        public string? PrimaryKeyName => _node?.GetPrimaryKey()?.Name;
+
         public EntityTree(Type type)
         {
             Type = type;
@@ -81,7 +84,7 @@ namespace Backend.Database
 
         public void PrintStructure()
         {
-            Console.WriteLine($"{Type.Name}:");
+            Console.WriteLine($"{Name}:");
             foreach (var child in _children)
             {
                 Console.Write($"\t- ");
@@ -89,7 +92,7 @@ namespace Backend.Database
             }
         }
 
-        public override string ToString() => $"EntityTree<{Type.Name}>";
+        public override string ToString() => $"EntityTree<{Name}>";
 
     }
 

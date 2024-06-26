@@ -47,6 +47,7 @@ namespace Backend.Database
 
             foreach (IAbstractDatabase db in lazyInstance.Value.Databases)
             {
+                Map.AddChild(new(db.ModelType));
                 Task<List<ISQLModel>> task = db.RetrieveAsync().ToListAsync().AsTask();
                 tasks.Add(task);
             }
@@ -55,7 +56,6 @@ namespace Backend.Database
 
             for(int i = 0; i < tasks.Count; i++) Get(i).ReplaceRecords(tasks[i].Result);
 
-            MapUp();
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace Backend.Database
             return null;
         }
 
-        private static void MapUp()
+        public static void MapUp()
         {
             foreach (IAbstractDatabase db in lazyInstance.Value.Databases)
             {
