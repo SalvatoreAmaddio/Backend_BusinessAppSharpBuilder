@@ -8,6 +8,7 @@ namespace Backend.Database
     /// </summary>
     public sealed class DatabaseManager
     {
+        public static readonly EntityMap Map = new();
         private static readonly Lazy<DatabaseManager> lazyInstance = new(() => new DatabaseManager());
         private readonly List<IAbstractDatabase> Databases;
 
@@ -90,11 +91,19 @@ namespace Backend.Database
         /// <returns>An instance of <see cref="IAbstractDatabase"/> object. Returns null if the instance was not found.</returns>
         public static IAbstractDatabase? Find<M>() where M : ISQLModel, new()
         {
-            foreach (IAbstractDatabase db in lazyInstance.Value.Databases) 
+            foreach (IAbstractDatabase db in lazyInstance.Value.Databases)
             {
                 if (db.Model.GetType().Equals(typeof(M))) return db;
             }
             return null;
+        }
+
+        public static void MapUp()
+        {
+            foreach (IAbstractDatabase db in lazyInstance.Value.Databases)
+            {
+                Map.AddChild(new(db.ModelType));
+            }
         }
     }
 

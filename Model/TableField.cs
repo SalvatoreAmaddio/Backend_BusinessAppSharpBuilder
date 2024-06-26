@@ -62,6 +62,8 @@ namespace Backend.Model
         /// Gets the name of the Class of the Property marked with <see cref="FK"/> attribute.
         /// </summary>
         public string ClassName { get; }
+
+        public Type ClassType { get; }
     }
 
     /// <summary>
@@ -117,11 +119,13 @@ namespace Backend.Model
     {
         public TableField? PK { get; }
         public string ClassName { get; }
+        public Type ClassType { get; }
         public FKField(AbstractField field, PropertyInfo property, ISQLModel model) : base(field, property, model)
         {
             ISQLModel? fk_model = (ISQLModel?)GetValue();
             fk_model ??= (ISQLModel)Activator.CreateInstance(property.PropertyType)!;
             ClassName = property.PropertyType.Name;
+            ClassType = property.PropertyType;
             PK = fk_model.GetPrimaryKey() ?? throw new Exception("NO PK IN FK");
             Name = PK.Name;
         }
