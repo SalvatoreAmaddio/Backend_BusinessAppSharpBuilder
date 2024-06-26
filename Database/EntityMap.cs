@@ -3,6 +3,9 @@ using Backend.Model;
 
 namespace Backend.Database
 {
+    /// <summary>
+    /// Represents a Tree Data Structure for each <see cref="ISQLModel"/> object and their <see cref="FK"/>.
+    /// </summary>
     public class EntityMap : IDisposable
     {
         private readonly List<EntityTree> _children = [];
@@ -45,7 +48,7 @@ namespace Backend.Database
     }
 
     /// <summary>
-    /// This class represents a tree structure for .
+    /// This class represents a tree structure for a <see cref="ISQLModel"/> and its <see cref="FK"/>.
     /// </summary>
     public class EntityTree : IDisposable
     {

@@ -280,23 +280,6 @@ namespace Backend.Controller
                         }
                     }
                 });
-
-                //foreach (EntityTree tree in trees)
-                //{
-                //    IAbstractDatabase? db = DatabaseManager.Find(tree.Name);
-                //    IEnumerable<ISQLModel>? toRemove = db?.MasterSource.Where(s => AbstractFormController<M>.FetchToRemove(s, model)).ToList();
-                //    if (toRemove == null) continue;
-                //    foreach (ISQLModel record in toRemove)
-                //    {
-                //        DeleteOrphan(record);
-                //        record.InvokeBeforeRecordDelete();
-                //        db?.MasterSource.Remove(record);
-                //        Application.Current.Dispatcher.Invoke(() => 
-                //        {
-                //            db?.MasterSource?.NotifyChildren(CRUD.DELETE, record);
-                //        });
-                //    }
-                //}
             });
         }
         public virtual bool AlterRecord(string? sql = null, List<QueryParameter>? parameters = null)
