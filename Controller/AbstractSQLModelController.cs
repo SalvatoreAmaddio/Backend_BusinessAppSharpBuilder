@@ -238,6 +238,7 @@ namespace Backend.Controller
         public void DeleteRecord(string? sql = null, List<QueryParameter>? parameters = null)
         {
             if (CurrentModel == null) throw new NoModelException();
+            CurrentModel.InvokeBeforeRecordDelete();
             Db.Model = CurrentModel;
             DeleteOrphan(CurrentModel);
             Db.Crud(CRUD.DELETE, sql, parameters);
