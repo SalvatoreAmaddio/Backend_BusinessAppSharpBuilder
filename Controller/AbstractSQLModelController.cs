@@ -272,7 +272,7 @@ namespace Backend.Controller
                         await Task.Delay(1, CancellationToken.None);
                         try
                         {
-                            tree.NotifyChildren(record);
+                            tree.NotifyMasterSourceChildren(record);
                         }
                         catch
                         {

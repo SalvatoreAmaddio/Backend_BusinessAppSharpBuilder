@@ -7,10 +7,7 @@ namespace Backend.Database
     {
         private readonly List<EntityTree> _children = [];
 
-        public void AddChild(EntityTree tree)
-        {
-            _children.Add(tree);
-        }
+        public void AddChild(EntityTree tree) => _children.Add(tree);
 
         public IEnumerable<EntityTree> FetchParentsOfNode<T>()
         {
@@ -33,39 +30,38 @@ namespace Backend.Database
         public void PrintStructure()
         {
             foreach (var child in _children)
-            {
                 child.PrintStructure();
-            }
         }
 
         public void Dispose()
         {
             foreach (var child in _children) 
-            { 
                 child.Dispose();
-            }
+
             _children.Clear();
             GC.SuppressFinalize(this);
         }
 
     }
 
+    /// <summary>
+    /// This class represents a tree structure for .
+    /// </summary>
     public class EntityTree : IDisposable
     {
-        public IAbstractDatabase? Db => DatabaseManager.Find(Name);
-        public Type Type { get; }
-        public string Name => Type.Name;
+        private readonly Type _type;
         private readonly ISQLModel? _node;
         private readonly List<EntityTree> _children = [];
-        public string? PrimaryKeyName => _node?.GetPrimaryKey()?.Name;
+        private string Name => _type.Name;
+        private IAbstractDatabase? Db => DatabaseManager.Find(Name);
 
         public EntityTree(Type type)
         {
-            Type = type;
+            _type = type;
 
             try
             {
-                _node = (ISQLModel?)Activator.CreateInstance(Type);
+                _node = (ISQLModel?)Activator.CreateInstance(_type);
             }
             catch
             {
@@ -88,16 +84,17 @@ namespace Backend.Database
         {
             foreach (var child in _children)
             {
-                if (child.Type == typeof(T))
+                if (child._type == typeof(T))
                     return true;
             }
             return false;
         }
+
         public EntityTree? FetchNode(string name)
         {
             foreach (var child in _children)
             {
-                if (child.Type.Name.Equals(name))
+                if (child._type.Name.Equals(name))
                     return child;
             }
             return null;
@@ -107,7 +104,7 @@ namespace Backend.Database
         {
             foreach (var child in _children)
             {
-                if (child.Type == typeof(T))
+                if (child._type == typeof(T))
                     return child;
             }
             return null;
@@ -123,19 +120,11 @@ namespace Backend.Database
             }
         }
 
-        public override string ToString() => $"EntityTree<{Name}>";
-
         public IEnumerable<ISQLModel>? GetRecordsHaving(ISQLModel model) => Db?.MasterSource.Where(s => FetchToRemove(s, model)).ToList();
 
-        public void RemoveFromMasterSource(ISQLModel record) 
-        { 
-            Db?.MasterSource.Remove(record);
-        }
+        public void RemoveFromMasterSource(ISQLModel record) => Db?.MasterSource.Remove(record);
         
-        public void NotifyChildren(ISQLModel record) 
-        {
-            Db?.MasterSource?.NotifyChildren(CRUD.DELETE, record);
-        }
+        public void NotifyMasterSourceChildren(ISQLModel record) => Db?.MasterSource?.NotifyChildren(CRUD.DELETE, record);
 
         private static bool FetchToRemove(ISQLModel model, ISQLModel? mod)
         {
@@ -157,6 +146,9 @@ namespace Backend.Database
             _children.Clear();
             GC.SuppressFinalize(this);
         }
+
+        public override string ToString() => $"EntityTree<{Name}>";
+
     }
 
 }
