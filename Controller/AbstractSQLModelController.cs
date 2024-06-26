@@ -239,6 +239,7 @@ namespace Backend.Controller
         {
             if (CurrentModel == null) throw new NoModelException();
             Db.Model = CurrentModel;
+            DeleteOrphan(CurrentModel);
             Db.Crud(CRUD.DELETE, sql, parameters);
             if (Db.Model.IsNewRecord()) //this occurs in ListView objects when you add a new record but then decided to delete it.
             {
@@ -250,6 +251,57 @@ namespace Backend.Controller
                 Db?.MasterSource?.NotifyChildren(CRUD.DELETE, Db.Model); //notify children sources that the master source has changed.
         }
 
+        protected abstract void OnApplication(IAbstractDatabase? db, ISQLModel record);
+
+        private async void DeleteOrphan(ISQLModel? model)
+        {
+            if (model == null) return;
+            await Task.Run(() =>
+            {
+                IEnumerable<EntityTree> trees = DatabaseManager.Map.FetchParentsOfNode(model.GetType().Name);
+                Parallel.ForEachAsync(trees, async (tree, t) =>
+                {
+                    IAbstractDatabase? db = DatabaseManager.Find(tree.Name);
+                    IEnumerable<ISQLModel>? toRemove = db?.MasterSource.Where(s => FetchToRemove(s, model)).ToList();
+                    if (toRemove == null) return;
+                    foreach (ISQLModel record in toRemove)
+                    {
+                        await Task.Run(()=>DeleteOrphan(record));
+                        record.InvokeBeforeRecordDelete();
+                        db?.MasterSource.Remove(record);
+                        await Task.Delay(1);
+                        OnApplication(db, record);
+                    }
+                });
+
+                //foreach (EntityTree tree in trees)
+                //{
+                //    IAbstractDatabase? db = DatabaseManager.Find(tree.Name);
+                //    IEnumerable<ISQLModel>? toRemove = db?.MasterSource.Where(s => AbstractFormController<M>.FetchToRemove(s, model)).ToList();
+                //    if (toRemove == null) continue;
+                //    foreach (ISQLModel record in toRemove)
+                //    {
+                //        DeleteOrphan(record);
+                //        record.InvokeBeforeRecordDelete();
+                //        db?.MasterSource.Remove(record);
+                //        Application.Current.Dispatcher.Invoke(() => 
+                //        {
+                //            db?.MasterSource?.NotifyChildren(CRUD.DELETE, record);
+                //        });
+                //    }
+                //}
+            });
+        }
+
+        private static bool FetchToRemove(ISQLModel model, ISQLModel? mod)
+        {
+            string? propName = mod?.GetTableName();
+            if (string.IsNullOrEmpty(propName)) return false;
+            object? obj = model.GetPropertyValue(propName);
+            if (obj == null) return false;
+            bool res = obj.Equals(mod);
+            return res;
+        }
         public virtual bool AlterRecord(string? sql = null, List<QueryParameter>? parameters = null)
         {
             if (CurrentModel == null) throw new NoModelException();
