@@ -3,7 +3,8 @@ using Backend.Enums;
 
 namespace Backend.Events
 {
-
+    public delegate void BeforeRecordDeleteEventHandler(object? sender, EventArgs e);
+    public delegate void AfterRecordDeleteEventHandler(object? sender, EventArgs e);
     public delegate void OnDatabaseConnectionOpen(object? sender, DatabaseEventArgs e);
     public delegate void InternetConnectionStatusHandler(object? sender, InternetConnectionStatusArgs e);
     public delegate void BeforeRecordNavigationEventHandler(object? sender, AllowRecordMovementArgs e);

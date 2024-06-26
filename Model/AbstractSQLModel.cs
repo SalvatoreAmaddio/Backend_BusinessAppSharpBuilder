@@ -1,4 +1,5 @@
 ﻿using Backend.Database;
+using Backend.Events;
 using Backend.ExtensionMethods;
 using System.Data.Common;
 using System.Reflection;
@@ -22,7 +23,12 @@ namespace Backend.Model
         public string RecordCountQry { get; set; } = string.Empty;
         #endregion
 
-        public AbstractSQLModel() 
+        #region Events
+        public event BeforeRecordDeleteEventHandler? BeforeRecordDelete;
+        public event AfterRecordDeleteEventHandler? AfterRecordDelete;
+        #endregion
+
+        public AbstractSQLModel()
         {
             RecordCountQry = this.CountAll().From().Statement();
             SelectQry = this.Select().All().From().Statement();
@@ -37,7 +43,7 @@ namespace Backend.Model
             Type type = GetType();
             return type.GetProperties().Cast<PropertyInfo>().Any(s => s.Name.Equals(properyName));
         }
-        public object? GetPropertyValue(string properyName) 
+        public object? GetPropertyValue(string properyName)
         {
             Type type = GetType();
             PropertyInfo[] props = type.GetProperties();
@@ -138,7 +144,7 @@ namespace Backend.Model
                 parameters?.Add(new(fk_field.Name, fk_field.PK?.GetValue()));
             }
         }
-        public string GetEmptyMandatoryFields() 
+        public string GetEmptyMandatoryFields()
         {
             StringBuilder sb = new();
 
@@ -179,8 +185,14 @@ namespace Backend.Model
 
             return _emptyFields.Count == 0;
         }
+        
+        public void InvokeBeforeRecordDelete() => BeforeRecordDelete?.Invoke(this, EventArgs.Empty);
+        public void InvokeAfterRecordDelete() => AfterRecordDelete?.Invoke(this, EventArgs.Empty);
+
         public virtual void Dispose()
         {
+            BeforeRecordDelete = null;
+            AfterRecordDelete = null;
             _emptyFields.Clear();
             GC.SuppressFinalize(this);
         }
