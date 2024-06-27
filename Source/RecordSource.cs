@@ -124,30 +124,6 @@ namespace Backend.Source
             GC.SuppressFinalize(this);
         }
 
-        public void Combine(RecordSource child, string key)
-        {
-            RecordSource master = new(this.ToList());
-            int index = -1;
-
-            foreach (ISQLModel record in master)
-            {
-                IEnumerable<ISQLModel> subGroup = child.Where(s => FilterSubGroupBy(s, key, record)).ToList();
-                index++;
-                foreach (ISQLModel subRecord in subGroup)
-                {
-                    index++;
-                    this.Insert(index, subRecord);
-                }
-            }
-        }
-
-        private static bool FilterSubGroupBy(ISQLModel record, string key, ISQLModel record2)
-        {
-            object? obj = record.GetPropertyValue(key);
-            if (obj == null) return false;
-            return obj.Equals(record2);
-        }
-
         ~RecordSource()
         {
             Dispose();
