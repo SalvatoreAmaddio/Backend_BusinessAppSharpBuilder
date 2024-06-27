@@ -19,6 +19,19 @@
             _bits.Add($"{tableName}.*");
             return this;
         }
+
+        public SelectClause AllExcept(params string[] fieldNames)
+        {
+            IEnumerable<string> fields = _model.GetEntityFieldNames();
+
+            foreach (string field in fields)
+            {
+                if (fieldNames.Any(s => s.Equals(field))) continue;
+                _bits.Add($"{TableName}.{field}");
+            }
+            return this;
+        }
+
         public SelectClause Fields(params string[] fields)
         {
             foreach (var field in fields)
