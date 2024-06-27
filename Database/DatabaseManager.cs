@@ -21,6 +21,16 @@ namespace Backend.Database
         public static void Add(IAbstractDatabase db) => lazyInstance.Value.Databases.Add(db);
 
         /// <summary>
+        /// It adds a database object.
+        /// </summary>
+        /// <param name="db">An object implementing <see cref="IAbstractDatabase"/></param>
+        public static void Remove(IAbstractDatabase db) 
+        {
+            lazyInstance.Value.Databases.Remove(db);
+            db.Dispose();
+        }
+
+        /// <summary>
         /// The number of IAbstractDatabases.
         /// </summary>
         /// <value>An Integer.</value>
