@@ -59,16 +59,16 @@ namespace Backend.Office
         /// <param name="use_pk_for_fk">set it to true if ForeignKey's objects' PK should be printed</param>
         public void PrintData(IEnumerable<ISQLModel> records, bool use_pk_for_fk = false, int row = 2)
         {
-            if (records.Count() == 0) return;
+            if (!records.Any()) return;
             if (row <= 0) throw new ExcelIndexException();
             int initialRow = row;
             int totalColumns = 0;
             int column = 1;
-            foreach (ISQLModel record in records) 
+            foreach (ISQLModel record in records)
             {
-                foreach(ITableField tableField in record.GetEntityFields()) 
+                foreach (ITableField tableField in record.GetEntityFields())
                 {
-                    if (tableField is FKField fk) 
+                    if (tableField is FKField fk)
                     {
                         object? value;
                         if (!use_pk_for_fk)
@@ -78,7 +78,7 @@ namespace Backend.Office
 
                         SetValue(value, row, column);
                     }
-                    else 
+                    else
                         SetValue(tableField?.GetValue(), row, column);
                     column++;
                 }
