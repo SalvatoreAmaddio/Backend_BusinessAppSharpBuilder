@@ -112,7 +112,7 @@ namespace Backend.Office
         public void SetValue(object? value, int row = 1, int col = 1)
         {
             if (row <= 0 || col <= 0) throw new ExcelIndexException();
-            this.wrksheet.Cells[row, col] = (value == null) ? string.Empty : value;
+            this.wrksheet.Cells[row, col] = (value == null) ? string.Empty : value.ToString();
         }
 
         /// <summary>
