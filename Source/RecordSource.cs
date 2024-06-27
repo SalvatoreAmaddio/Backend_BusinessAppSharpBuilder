@@ -124,7 +124,7 @@ namespace Backend.Source
             GC.SuppressFinalize(this);
         }
 
-        public void Combine(RecordSource child, string key) 
+        public void Combine(RecordSource child, string key)
         {
             RecordSource master = new(this.ToList());
             int index = -1;
