@@ -33,6 +33,14 @@ namespace Backend.Source
         }
 
         /// <summary>
+        /// It instantiates a RecordSource object filled with the given IEnumerable&lt;<see cref="ISQLModel"/>&gt;.
+        /// </summary>
+        /// <param name="source">An IEnumerable&lt;<see cref="ISQLModel"/>&gt;</param>
+        public RecordSource(IEnumerable<ISQLModel> source) : base(source.ToList())
+        {
+        }
+
+        /// <summary>
         /// It instantiates a RecordSource object filled with the given <see cref="IAbstractDatabase.MasterSource"/> IEnumerable.
         /// This constructor will consider this RecordSource object as a child of the <see cref="IAbstractDatabase.MasterSource"/>
         /// </summary>
@@ -114,6 +122,30 @@ namespace Backend.Source
             Controller?.Dispose();
             navigator = null;
             GC.SuppressFinalize(this);
+        }
+
+        public void Combine(RecordSource child, string key) 
+        {
+            RecordSource master = new(this.ToList());
+            int index = -1;
+
+            foreach (ISQLModel record in master)
+            {
+                IEnumerable<ISQLModel> subGroup = child.Where(s => FilterSubGroupBy(s, key, record)).ToList();
+                index++;
+                foreach (ISQLModel subRecord in subGroup)
+                {
+                    index++;
+                    this.Insert(index, subRecord);
+                }
+            }
+        }
+
+        private static bool FilterSubGroupBy(ISQLModel record, string key, ISQLModel record2)
+        {
+            object? obj = record.GetPropertyValue(key);
+            if (obj == null) return false;
+            return obj.Equals(record2);
         }
 
         ~RecordSource()
