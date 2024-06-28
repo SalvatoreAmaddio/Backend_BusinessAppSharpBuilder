@@ -71,13 +71,18 @@ namespace Backend.Controller
         }
 
         #region GoTo
-        protected virtual bool CanMove() 
+        /// <summary>
+        /// It checks if the <see cref="CurrentRecord"/>'s property meets the conditions to be updated. This method is called whenever the <see cref="Navigator"/> moves.
+        /// </summary>
+        /// <returns>true if the Navigator can move.</returns>
+        protected virtual bool CanMove()
         {
             if (CurrentModel != null)
             {
                 if (CurrentModel.IsNewRecord()) return true;
                 if (!CurrentModel.AllowUpdate()) return false;
             }
+
             return true;
         }
 
@@ -177,10 +182,9 @@ namespace Backend.Controller
 
         public virtual bool GoNew()
         {
+            if (!AllowNewRecord) return false;
             if (!CanMove()) return false;
-
             if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoNew)) return false; //Event was cancelled
-
             bool moved = Navigator.GoNew();
 
             if (!moved)
