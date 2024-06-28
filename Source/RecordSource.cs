@@ -120,7 +120,7 @@ namespace Backend.Source
         {
             ParentSource?.RemoveChild(this);
             Controller?.Dispose();
-            navigator = null;
+            navigator?.Dispose();
             GC.SuppressFinalize(this);
         }
 

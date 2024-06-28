@@ -14,7 +14,7 @@ namespace Backend.Source
     /// <summary>
     /// This interface defines a set of methods and properties that each RecordSource's Navigator must implement.
     /// </summary>
-    public interface INav
+    public interface INav : IDisposable
     {
         /// <summary>
         /// Tells if there are no records at all. 
