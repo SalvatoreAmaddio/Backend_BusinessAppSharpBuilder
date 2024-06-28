@@ -4,18 +4,20 @@ using System.Reflection;
 
 namespace Backend.Model
 {
+    public interface IReflector : IDisposable 
+    {
+        public bool PropertyExists(string properyName);
+        public object? GetPropertyValue(string properyName);
+        public IEnumerable<PropertyInfo> GetPropertiesInfo();
+
+    }
+
     /// <summary>
     /// This interface defines a set of methods and properties that allow a
     /// <see cref="AbstractDatabase"/> object to talk to a <see cref="AbstractSQLModel"/> object
     /// </summary>
-    public interface ISQLModel : IDisposable
+    public interface ISQLModel : IReflector
     {
-        public bool PropertyExists(string properyName);
-        public object? GetPropertyValue(string properyName); 
-        public IEnumerable<PropertyInfo> GetPropertiesInfo();
-        public IEnumerable<string> GetEntityFieldNames();
-        public IEnumerable<ITableField> GetEntityFields();
-
         /// <summary>
         /// This method allows the creation of an object by reading the DataReader.
         /// <para></para>
@@ -36,6 +38,49 @@ namespace Backend.Model
         public ISQLModel Read(DbDataReader reader);
 
         /// <summary>
+        /// Gets and Sets the select statement to count all rows in a table.
+        /// <para/>
+        /// This property comes with a default auto-generate query
+        /// </summary>
+        /// <value>A string.</value>
+        public string RecordCountQry { get; set; }
+
+        /// <summary>
+        /// Gets and Sets the Select Statement used by the <see cref="AbstractDatabase"/> class.
+        /// <para/>
+        /// This property comes with a default auto-generated query
+        /// </summary>
+        /// <value>A string representing the Select Statement.</value>
+        public string SelectQry { get; set; }
+
+        /// <summary>
+        /// Gets and Sets the Update Statement used by the <see cref="AbstractDatabase"/> class.
+        /// <para/>
+        /// This property comes with a default auto-generated query.
+        /// </summary>
+        /// <value>A string representing the Update Statement.</value>
+        public string UpdateQry { get; set; }
+
+        /// <summary>
+        /// Gets and Sets the Delete Statement used by the <see cref="AbstractDatabase"/> class.
+        /// <para/>
+        /// This property comes with a default auto-generated query.
+        /// </summary>
+        /// <value>A string representing the Delete Statement.</value>
+        public string DeleteQry { get; set; }
+
+        /// <summary>
+        /// Gets and Sets the Insert Statement used by the <see cref="AbstractDatabase"/> class.
+        /// <para/>
+        /// This property comes with a auto-generated query.
+        /// </summary>
+        /// <value>A string representing the Insert Statement.</value>
+        public string InsertQry { get; set; }
+
+        public IEnumerable<string> GetEntityFieldNames();
+        public IEnumerable<ITableField> GetEntityFields();
+        
+        /// <summary>
         /// This method is used to identify which Properties serve as Table Fields such as TEXT, DATE, INT, and so on.<para/>
         /// This method is used to auto-generate queries through Reflection.
         /// </summary>
@@ -48,6 +93,7 @@ namespace Backend.Model
         /// </summary>
         /// <returns>Returns an IEnumerable containing all properties marked with the [<see cref="FK"/>] attribute.</returns>
         public IEnumerable<ITableField> GetForeignKeys();
+
 
         /// <summary>
         /// This method is used to identify which Property serves as Primary Key.<para/>
@@ -93,45 +139,6 @@ namespace Backend.Model
         ///<returns>true if all conditions are met; False if one ore more condition are not met.</returns>
         public bool AllowUpdate();
 
-        /// <summary>
-        /// Gets and Sets the select statement to count all rows in a table.
-        /// <para/>
-        /// This property comes with a default auto-generate query
-        /// </summary>
-        /// <value>A string.</value>
-        public string RecordCountQry { get; set; }
-
-        /// <summary>
-        /// Gets and Sets the Select Statement used by the <see cref="AbstractDatabase"/> class.
-        /// <para/>
-        /// This property comes with a default auto-generated query
-        /// </summary>
-        /// <value>A string representing the Select Statement.</value>
-        public string SelectQry { get; set; }
-
-        /// <summary>
-        /// Gets and Sets the Update Statement used by the <see cref="AbstractDatabase"/> class.
-        /// <para/>
-        /// This property comes with a default auto-generated query.
-        /// </summary>
-        /// <value>A string representing the Update Statement.</value>
-        public string UpdateQry { get; set; }
-
-        /// <summary>
-        /// Gets and Sets the Delete Statement used by the <see cref="AbstractDatabase"/> class.
-        /// <para/>
-        /// This property comes with a default auto-generated query.
-        /// </summary>
-        /// <value>A string representing the Delete Statement.</value>
-        public string DeleteQry { get; set; }
-
-        /// <summary>
-        /// Gets and Sets the Insert Statement used by the <see cref="AbstractDatabase"/> class.
-        /// <para/>
-        /// This property comes with a auto-generated query.
-        /// </summary>
-        /// <value>A string representing the Insert Statement.</value>
-        public string InsertQry { get; set; }
 
         /// <summary>
         /// Gets a list of Properties marked with the <see cref="Mandatory"/> attribute but they are null.

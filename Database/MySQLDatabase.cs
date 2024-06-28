@@ -21,7 +21,7 @@ namespace Backend.Database
     /// <summary>
     /// This class is a concrete definition of <see cref="AbstractDatabase"/> meant for dealing with a MySQL database.
     /// </summary>
-    public class MySQLDatabase(ISQLModel Model) : AbstractDatabase(Model)
+    public class MySQLDatabase<M> : AbstractDatabase<M> where M : ISQLModel, new()
     {
         public string UsernName { get; set; } = string.Empty;
         public string Port { get; set; } = "3306";
@@ -30,7 +30,7 @@ namespace Backend.Database
         private string MySQL_IV => $"{Server}_MySQL_{UsernName}_IV";
         private string MySQL_USER => $"{Server}_MySQL_{UsernName}";
 
-        public MySQLDatabase(ISQLModel Model, MySQLConnectionStringInfo info) : this(Model) 
+        public MySQLDatabase(MySQLConnectionStringInfo info) 
         {
             UsernName = info.UsernName;
             Port = info.Port;

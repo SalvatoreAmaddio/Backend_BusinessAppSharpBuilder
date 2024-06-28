@@ -10,13 +10,13 @@ namespace Backend.Database
     /// <summary>
     /// AbstractClass that defines the structure that any Database Class should use. This class implements <see cref="IAbstractDatabase"/>.
     /// </summary>
-    public abstract class AbstractDatabase(ISQLModel Model) : IAbstractDatabase
+    public abstract class AbstractDatabase<M> : IAbstractDatabase where M : ISQLModel, new()
     {
         protected event OnDatabaseConnectionOpen? OnConnectionOpenEvent;
 
         #region Properties
         public virtual string DatabaseName { get; set; } = string.Empty;
-        public ISQLModel Model { get; set; } = Model;
+        public ISQLModel Model { get; set; } = new M();
         public Type ModelType => Model.GetType();
         public MasterSource MasterSource { get; protected set; } = [];
         #endregion
@@ -443,4 +443,5 @@ namespace Backend.Database
             GC.SuppressFinalize(this);
         }
     }
+
 }
