@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Backend.Source
 {
-    public interface IRecordSource : ICollection, IChildSource, IDisposable
+    public interface IDataSource : ICollection, IChildSource, IDisposable
     {
         /// <summary>
         /// The Controller to which this RecordSource is associated to.

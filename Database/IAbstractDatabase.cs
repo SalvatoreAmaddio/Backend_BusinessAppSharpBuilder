@@ -91,7 +91,7 @@ namespace Backend.Database
         /// </summary>
         /// <param name="sql">The select statement, it can be null</param>
         /// <param name="parameters"> A List of object parameter, it can be null</param>
-        /// <returns> a IEnumerable&lt;<see cref="ISQLModel"/>&gt; object which can be used to create a <see cref="RecordSource"/></returns>
+        /// <returns> a IEnumerable&lt;<see cref="ISQLModel"/>&gt; object which can be used to create a <see cref="DataSource"/></returns>
         /// <exception cref="NoModelException">Thrown if the <see cref="Model"/> is null.</exception>
         public IEnumerable<ISQLModel> Retrieve(string? sql = null, List<QueryParameter>? parameters = null);
 

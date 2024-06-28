@@ -39,7 +39,7 @@ namespace Backend.Controller
         /// A recordsource object that old the collection of records.
         /// </summary>
         /// <value>A RecordSource</value>
-        public IRecordSource Source { get; }
+        public IDataSource Source { get; }
 
         /// <summary>
         /// Gets and Sets whether or no a new Record can be added. Default value is true.
@@ -49,45 +49,45 @@ namespace Backend.Controller
 
         /// <summary>
         /// It tells the RecordSource's Enumerator to go to the next available record.
-        /// see <see cref="RecordSource"/>
+        /// see <see cref="DataSource"/>
         /// </summary>
         public bool GoNext();
 
         /// <summary>
         /// It tells the RecordSource's Enumerator to go to the previous available record.
-        /// see <see cref="RecordSource"/>
+        /// see <see cref="DataSource"/>
         /// </summary>
         public bool GoPrevious();
 
         /// <summary>
         /// It tells the RecordSource's Enumerator to go to the last record.
-        /// see <see cref="RecordSource"/>
+        /// see <see cref="DataSource"/>
         /// </summary>
         public bool GoLast();
 
         /// <summary>
         /// It tells the RecordSource's Enumerator to go to the first record.
-        /// see <see cref="RecordSource"/>
+        /// see <see cref="DataSource"/>
         /// </summary>
         public bool GoFirst();
 
         /// <summary>
         /// It tells the RecordSource's Enumerator to go to a given record based on its zero-based position.
-        /// see <see cref="RecordSource"/>
+        /// see <see cref="DataSource"/>
         /// </summary>
         /// <param name="index">the zero-based index of the Record to go to.</param>
         public bool GoAt(int index);
 
         /// <summary>
         /// It finds the given record and tells the RecordSource's Enumerator to go to its zero-based position.
-        /// see <see cref="RecordSource"/>
+        /// see <see cref="DataSource"/>
         /// </summary>
         /// <param name="record">the record to move to.</param>
         public bool GoAt(ISQLModel? record);
 
         /// <summary>
         /// It tells the RecordSource's Enumerator that a new record will be added.
-        /// see <see cref="RecordSource"/>
+        /// see <see cref="DataSource"/>
         /// </summary>
         public bool GoNew();
 

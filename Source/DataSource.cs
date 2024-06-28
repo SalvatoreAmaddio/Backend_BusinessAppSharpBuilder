@@ -11,10 +11,10 @@ namespace Backend.Source
     /// This class extends the <see cref="Collection{T}"/> and deals with IEnumerable&lt;<see cref="ISQLModel"/>&gt;. As Enumerator it uses a <see cref="INavigator"/>.
     /// see also the <seealso cref="Navigator"/> class.
     /// </summary>
-    public class RecordSource : Collection<ISQLModel>, IRecordSource, IChildSource
+    public class DataSource : Collection<ISQLModel>, IDataSource, IChildSource
     {
 
-        private INavigator? navigator;
+        private Navigator? navigator;
         public IParentSource? ParentSource { get; set; }
         public IAbstractSQLModelController? Controller { get; set; }
 
@@ -22,13 +22,13 @@ namespace Backend.Source
         /// <summary>
         /// Parameterless Constructor to instantiate a RecordSource object.
         /// </summary>
-        public RecordSource() { }
+        public DataSource() { }
 
         /// <summary>
         /// It instantiates a RecordSource object filled with the given IEnumerable&lt;<see cref="ISQLModel"/>&gt;.
         /// </summary>
         /// <param name="source">An IEnumerable&lt;<see cref="ISQLModel"/>&gt;</param>
-        public RecordSource(IList<ISQLModel> source) : base(source)
+        public DataSource(IList<ISQLModel> source) : base(source)
         {
         }
 
@@ -36,7 +36,7 @@ namespace Backend.Source
         /// It instantiates a RecordSource object filled with the given IEnumerable&lt;<see cref="ISQLModel"/>&gt;.
         /// </summary>
         /// <param name="source">An IEnumerable&lt;<see cref="ISQLModel"/>&gt;</param>
-        public RecordSource(IEnumerable<ISQLModel> source) : base(source.ToList())
+        public DataSource(IEnumerable<ISQLModel> source) : base(source.ToList())
         {
         }
 
@@ -45,7 +45,7 @@ namespace Backend.Source
         /// This constructor will consider this RecordSource object as a child of the <see cref="IAbstractDatabase.MasterSource"/>
         /// </summary>
         /// <param name="db">An instance of <see cref="IAbstractDatabase"/></param>
-        public RecordSource(IAbstractDatabase db) : this(db.MasterSource) => db.MasterSource.AddChild(this);
+        public DataSource(IAbstractDatabase db) : this(db.MasterSource) => db.MasterSource.AddChild(this);
 
         /// <summary>
         /// It instantiates a RecordSource object filled with the given <see cref="IAbstractDatabase.MasterSource"/> IEnumerable.
@@ -53,7 +53,7 @@ namespace Backend.Source
         /// </summary>
         /// <param name="db">An instance of <see cref="IAbstractDatabase"/></param>
         /// <param name="controller">An instance of <see cref="IAbstractSQLModelController"/></param>
-        public RecordSource(IAbstractDatabase db, IAbstractSQLModelController controller) : this(db) => Controller = controller;
+        public DataSource(IAbstractDatabase db, IAbstractSQLModelController controller) : this(db) => Controller = controller;
         #endregion
 
         #region Enumerator
@@ -102,8 +102,8 @@ namespace Backend.Source
         /// </summary>
         /// <param name="source"> An IAsyncEnumerable&lt;ISQLModel></param>
         /// <returns>Task&lt;RecordSource></returns>
-        public static async Task<RecordSource> CreateFromAsyncList(IAsyncEnumerable<ISQLModel> source) =>
-        new RecordSource(await source.ToListAsync());
+        public static async Task<DataSource> CreateFromAsyncList(IAsyncEnumerable<ISQLModel> source) =>
+        new DataSource(await source.ToListAsync());
 
         public virtual string RecordPositionDisplayer()
         {
@@ -124,7 +124,7 @@ namespace Backend.Source
             GC.SuppressFinalize(this);
         }
 
-        ~RecordSource()
+        ~DataSource()
         {
             Dispose();
         }

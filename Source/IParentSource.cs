@@ -4,7 +4,7 @@ using Backend.Model;
 namespace Backend.Source
 {
     /// <summary>
-    /// <c>Observer Pattern:</c> This interface defines the methods that a <see cref="RecordSource"/> must 
+    /// <c>Observer Pattern:</c> This interface defines the methods that a <see cref="DataSource"/> must 
     /// implement to act as Parent Source to notify Children sources.
     /// see also <seealso cref="IChildSource"/>
     /// </summary>
@@ -31,7 +31,7 @@ namespace Backend.Source
     }
 
     /// <summary>
-    /// <c>Observer Pattern:</c> This interface defines the methods that a <see cref="RecordSource"/> must 
+    /// <c>Observer Pattern:</c> This interface defines the methods that a <see cref="DataSource"/> must 
     /// implement to act as Child Source to receive messages from their Parent Source.
     /// see also <seealso cref="IParentSource"/>
     /// </summary>

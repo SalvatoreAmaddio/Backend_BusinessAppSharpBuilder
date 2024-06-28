@@ -16,7 +16,7 @@ namespace Backend.Controller
         #region Properties
         public IAbstractDatabase Db { get; protected set; } = null!;        
         public abstract int DatabaseIndex { get; }
-        public IRecordSource Source { get; protected set; }
+        public IDataSource Source { get; protected set; }
         protected INavigator Navigator => Source.Navigate();
         public virtual bool AllowNewRecord
         {
@@ -51,7 +51,7 @@ namespace Backend.Controller
             GoFirst();
         }
 
-        protected virtual IRecordSource InitSource() => new RecordSource(Db, this);
+        protected virtual IDataSource InitSource() => new DataSource(Db, this);
         public ICollection<ISQLModel>? SourceAsCollection()
         {
             try
