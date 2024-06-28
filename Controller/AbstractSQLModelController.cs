@@ -15,7 +15,6 @@ namespace Backend.Controller
 
         #region Properties
         public IAbstractDatabase Db { get; protected set; } = null!;        
-        public abstract int DatabaseIndex { get; }
         public IDataSource Source => DataSource;
         public IDataSource<M> DataSource { get; protected set; }
         protected INavigator<M> Navigator => DataSource.Navigate();
@@ -40,15 +39,7 @@ namespace Backend.Controller
 
         public AbstractSQLModelController()
         {
-            try
-            {
-                Db = DatabaseManager.Get(DatabaseIndex);
-            }
-            catch (IndexOutOfRangeException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-
+            Db = DatabaseManager.Find<M>() ?? throw new NullReferenceException();
             DataSource = InitSource();
             GoFirst();
         }

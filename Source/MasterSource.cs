@@ -29,6 +29,8 @@ namespace Backend.Source
 
         public void Dispose()
         {
+            foreach (ISQLModel record in this)
+                record.Dispose();
             Clear();
             Children.Clear();
             GC.SuppressFinalize(this);
