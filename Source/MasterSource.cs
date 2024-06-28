@@ -19,10 +19,8 @@ namespace Backend.Source
 
         public void NotifyChildren(CRUD crud, ISQLModel model)
         {
-            foreach (IChildSource child in Children) 
-            {
+            foreach (IChildSource child in Children)
                 child.Update(crud, model);
-            }
         }
 
         public void RemoveChild(IChildSource child) => Children.Remove(child);

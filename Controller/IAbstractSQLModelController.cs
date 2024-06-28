@@ -21,7 +21,10 @@ namespace Backend.Controller
         /// The current selected record.
         /// </summary>
         /// <value>An object that implements <see cref="ISQLModel"/> or extends <see cref="AbstractSQLModel"/>, which represents the current selected record</value>
-        public ISQLModel? CurrentModel { get; set; }
+        //public ISQLModel? CurrentModel { get; set; }
+
+        public void SetCurrentRecord(ISQLModel? model);
+        public ISQLModel? GetCurrentRecord();
 
         /// <summary>
         /// A recordsource object that old the collection of records.

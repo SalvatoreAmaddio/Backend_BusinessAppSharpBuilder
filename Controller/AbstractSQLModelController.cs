@@ -27,10 +27,13 @@ namespace Backend.Controller
                 Navigator.AllowNewRecord = value;
             } 
         }
-        public virtual ISQLModel? CurrentModel { get; set; }
+        public virtual M? CurrentRecord { get; set; }
         public virtual string Records { get; protected set; } = string.Empty;
         public bool EOF => Navigator.EOF;
         #endregion
+
+        public void SetCurrentRecord(ISQLModel? model) => CurrentRecord = (M?)model;
+        public ISQLModel? GetCurrentRecord() => CurrentRecord;
 
         #region Events
         public event AfterRecordNavigationEventHandler? AfterRecordNavigation;
@@ -68,10 +71,10 @@ namespace Backend.Controller
         /// <returns>true if the Navigator can move.</returns>
         protected virtual bool CanMove()
         {
-            if (CurrentModel != null)
+            if (CurrentRecord != null)
             {
-                if (CurrentModel.IsNewRecord()) return true;
-                if (!CurrentModel.AllowUpdate()) return false;
+                if (CurrentRecord.IsNewRecord()) return true;
+                if (!CurrentRecord.AllowUpdate()) return false;
             }
 
             return true;
@@ -87,11 +90,11 @@ namespace Backend.Controller
             {
                 Records = Source.RecordPositionDisplayer();
                 if (Source.Count == 0)
-                    CurrentModel = null;
+                    CurrentRecord = default;
                 return Navigator.EOF ? GoNew() : false;
             }
 
-            CurrentModel = Navigator.Current;
+            CurrentRecord = Navigator.Current;
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoNext)) return false; //Event was cancelled
 
@@ -110,7 +113,7 @@ namespace Backend.Controller
 
             try 
             {
-                CurrentModel = Navigator.Current;
+                CurrentRecord = Navigator.Current;
             }
             catch 
             { 
@@ -135,11 +138,11 @@ namespace Backend.Controller
             {
                 Records = Source.RecordPositionDisplayer();
                 if (Source.Count == 0)
-                    CurrentModel = null;
+                    CurrentRecord = default;
                 return false;
             }
 
-            CurrentModel = Navigator.Current;
+            CurrentRecord = Navigator.Current;
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoLast)) return false; //Event was cancelled
 
@@ -159,11 +162,11 @@ namespace Backend.Controller
             {
                 Records = Source.RecordPositionDisplayer();
                 if (Source.Count == 0)
-                    CurrentModel = null;
+                    CurrentRecord = default;
                 return false;
             }
 
-            CurrentModel = Navigator.Current;
+            CurrentRecord = Navigator.Current;
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoFirst)) return false; //Event was cancelled
 
@@ -182,11 +185,11 @@ namespace Backend.Controller
             {
                 Records = Source.RecordPositionDisplayer();
                 if (Source.Count == 0)
-                    CurrentModel = null;
+                    CurrentRecord = default;
                 return false;
             }
 
-            CurrentModel = new M();
+            CurrentRecord = new M();
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoNew)) return false; //Event was cancelled
 
@@ -202,7 +205,7 @@ namespace Backend.Controller
 
             bool moved = Navigator.GoAt(index);
             if (!moved) return false;
-            CurrentModel = Navigator.Current;
+            CurrentRecord = Navigator.Current;
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoAt)) return false; //Event was cancelled
 
@@ -215,7 +218,7 @@ namespace Backend.Controller
             if (!CanMove()) return false;
             if (record == null) 
             {
-                CurrentModel = null;
+                CurrentRecord = default;
                 Records = Source.RecordPositionDisplayer();
                 return false;
             }
@@ -227,7 +230,7 @@ namespace Backend.Controller
             bool moved = Navigator.GoAt(record);
             if (!moved) return false;
 
-            CurrentModel = record;
+            CurrentRecord = (M?)record;
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoAt)) return false; //Event was cancelled
 
@@ -239,10 +242,10 @@ namespace Backend.Controller
         #region CRUD Operations
         public void DeleteRecord(string? sql = null, List<QueryParameter>? parameters = null)
         {
-            if (CurrentModel == null) throw new NoModelException();
-            CurrentModel.InvokeBeforeRecordDelete();
-            Db.Model = CurrentModel;
-            DeleteOrphan(CurrentModel);
+            if (CurrentRecord == null) throw new NoModelException();
+            CurrentRecord.InvokeBeforeRecordDelete();
+            Db.Model = CurrentRecord;
+            DeleteOrphan(CurrentRecord);
             Db.Crud(CRUD.DELETE, sql, parameters);
             if (Db.Model.IsNewRecord()) //this occurs in ListView objects when you add a new record but then decided to delete it.
             {
@@ -286,13 +289,13 @@ namespace Backend.Controller
         }
         public virtual bool AlterRecord(string? sql = null, List<QueryParameter>? parameters = null)
         {
-            if (CurrentModel == null) throw new NoModelException();
-            if (!CurrentModel.AllowUpdate()) return false; //cannot update.
-            Db.Model = CurrentModel;
+            if (CurrentRecord == null) throw new NoModelException();
+            if (!CurrentRecord.AllowUpdate()) return false; //cannot update.
+            Db.Model = CurrentRecord;
             CRUD crud = (!Db.Model.IsNewRecord()) ? CRUD.UPDATE : CRUD.INSERT;
             Db.Crud(crud, sql, parameters);
             Db.MasterSource?.NotifyChildren(crud, Db.Model);
-            GoAt(CurrentModel);
+            GoAt(CurrentRecord);
             return true;
         }
         #endregion
