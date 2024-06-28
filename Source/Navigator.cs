@@ -6,9 +6,10 @@ namespace Backend.Source
     /// <summary>
     /// Concrete implementation of the <see cref="INavigator"/> Interface.
     /// </summary>
-    public class Navigator : INavigator
+    public class Navigator<M> : INavigator<M> where M : ISQLModel, new()
     {
-        protected ISQLModel[] _records;
+        protected M[] _records;
+        private int _index = -1;
         public int Index { get; set; } = -1;
         public int RecordCount => _records.Length;
         public bool IsNewRecord => Index > LastIndex;
@@ -24,28 +25,49 @@ namespace Backend.Source
         /// </summary>
         /// <value>An integer telling which is the last position in the array.</value>
         protected int LastIndex => (IsEmpty) ? -1 : RecordCount - 1;
-        object? IEnumerator.Current => Current;
 
-        public Navigator(IEnumerable<ISQLModel> source)
+        public Navigator(IEnumerable<M> source)
         {
             _records = source.ToArray();
             if (IsEmpty) Index = -1;
         }
 
-        public Navigator(IEnumerable<ISQLModel> source, int index, bool allowNewRecord) : this(source) 
+        public Navigator(IEnumerable<M> source, int index, bool allowNewRecord) : this(source) 
         {
             Index = index;
             AllowNewRecord = allowNewRecord;
         }
 
-        public ISQLModel Current
+        public bool MoveNext()
+        {
+            _index++;
+            return _index < _records.Length;
+        }
+
+        public M Current
         {
             get
             {
-                if (Index >= 0 && Index < _records.Length)
-                    return _records[Index];
+                if (Index > _index) _index = Index;
+                if (_index >= 0 && _index < _records.Length)
+                    return _records[_index];
                 
-                throw new InvalidOperationException($"Invalid state: New Record: {IsNewRecord}; IsEmpty: {IsEmpty}; Index: {Index}");
+                throw new InvalidOperationException($"{typeof(M).Name}'s Invalid state: New Record: {IsNewRecord}; IsEmpty: {IsEmpty}; Index: {_index}; Record Count: {RecordCount}");
+            }
+        }
+
+        object? IEnumerator.Current
+        { 
+            get
+            {
+                try
+                {
+                    return Current;
+                }
+                catch 
+                {
+                    return null;
+                }
             }
         }
 
@@ -54,45 +76,65 @@ namespace Backend.Source
             _records = [];
             GC.SuppressFinalize(this);
         }
-        public bool MoveNext()
+
+        public bool GoNext()
         {
             Index = IsEmpty ? -1 : ++Index;
-            return Index <= LastIndex;
+            bool result = Index <= LastIndex;
+
+            if (result)
+                _index = Index;
+            return result;
         }
-        public bool MovePrevious()
+
+        public bool GoPrevious()
         {
             Index = IsEmpty ? -1 : --Index;
-            return Index > -1;
+            bool result = Index > -1;
+            if (result)
+                _index = Index;
+            return result;
         }
-        public bool MoveFirst()
+        public bool GoFirst()
         {
             Index = (IsEmpty) ? -1 : 0;
-            return RecordCount > 0;
+            bool result = RecordCount > 0;
+            if (result)
+                _index = Index;
+            return result;
         }
-        public bool MoveLast()
+        public bool GoLast()
         {
             Index = (IsEmpty) ? -1 : LastIndex;
-            return RecordCount > 0;
+            bool result = RecordCount > 0;
+            if (result)
+                _index = Index;
+            return result;
         }
-        public bool MoveNew()
+        public bool GoNew()
         {
             if (!AllowNewRecord || IsNewRecord) return false;
             Index = RecordCount;
             return true;
         }
-        public bool MoveAt(int index)
+
+        public bool GoAt(int index)
         {
             Index = (IsEmpty) ? -1 : index;
-            return Index <= LastIndex;
+            bool result = Index <= LastIndex;
+            if (result)
+                _index = Index;
+            return result;
         }
 
-        public bool MoveAt(object record)
+        public bool GoAt(object record)
         {
             for (int i = 0; i < RecordCount; i++)
             {
                 if (_records[i].Equals(record))
                 {
                     Index = i;
+                    _index = Index;
                     return true;
                 }
             }

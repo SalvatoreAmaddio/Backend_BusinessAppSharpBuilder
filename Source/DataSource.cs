@@ -9,12 +9,12 @@ namespace Backend.Source
 {
     /// <summary>
     /// This class extends the <see cref="Collection{T}"/> and deals with IEnumerable&lt;<see cref="ISQLModel"/>&gt;. As Enumerator it uses a <see cref="INavigator"/>.
-    /// see also the <seealso cref="Navigator"/> class.
+    /// see also the <seealso cref="Navigator{T}"/> class.
     /// </summary>
-    public class DataSource : Collection<ISQLModel>, IDataSource, IChildSource
+    public class DataSource<M> : Collection<M>, IDataSource<M>, IChildSource where M : ISQLModel, new()
     {
 
-        private Navigator? navigator;
+        private Navigator<M>? _navigator;
         public IParentSource? ParentSource { get; set; }
         public IAbstractSQLModelController? Controller { get; set; }
 
@@ -28,7 +28,7 @@ namespace Backend.Source
         /// It instantiates a RecordSource object filled with the given IEnumerable&lt;<see cref="ISQLModel"/>&gt;.
         /// </summary>
         /// <param name="source">An IEnumerable&lt;<see cref="ISQLModel"/>&gt;</param>
-        public DataSource(IList<ISQLModel> source) : base(source)
+        public DataSource(IList<M> source) : base(source)
         {
         }
 
@@ -36,7 +36,7 @@ namespace Backend.Source
         /// It instantiates a RecordSource object filled with the given IEnumerable&lt;<see cref="ISQLModel"/>&gt;.
         /// </summary>
         /// <param name="source">An IEnumerable&lt;<see cref="ISQLModel"/>&gt;</param>
-        public DataSource(IEnumerable<ISQLModel> source) : base(source.ToList())
+        public DataSource(IEnumerable<M> source) : base(source.ToList())
         {
         }
 
@@ -45,7 +45,7 @@ namespace Backend.Source
         /// This constructor will consider this RecordSource object as a child of the <see cref="IAbstractDatabase.MasterSource"/>
         /// </summary>
         /// <param name="db">An instance of <see cref="IAbstractDatabase"/></param>
-        public DataSource(IAbstractDatabase db) : this(db.MasterSource) => db.MasterSource.AddChild(this);
+        public DataSource(IAbstractDatabase db) : this(db.MasterSource.Cast<M>()) => db.MasterSource.AddChild(this);
 
         /// <summary>
         /// It instantiates a RecordSource object filled with the given <see cref="IAbstractDatabase.MasterSource"/> IEnumerable.
@@ -61,18 +61,18 @@ namespace Backend.Source
         /// Override the default <c>GetEnumerator()</c> method to replace it with a <see cref="ISourceNavigator"></see> object./>
         /// </summary>
         /// <returns>An Enumerator object.</returns>
-        public new IEnumerator<ISQLModel> GetEnumerator()
+        public new IEnumerator<M> GetEnumerator()
         {
-            if (navigator != null)
+            if (_navigator != null)
             {
-                navigator = new Navigator(this, navigator.Index, navigator.AllowNewRecord);
-                return navigator;
+                _navigator = new Navigator<M>(this, _navigator.Index, _navigator.AllowNewRecord);
+                return _navigator;
             }
-            navigator = new Navigator(this);
-            return navigator;
+            _navigator = new Navigator<M>(this);
+            return _navigator;
         }
 
-        public INavigator Navigate() => (INavigator)GetEnumerator();
+        public INavigator<M> Navigate() => (INavigator<M>)GetEnumerator();
         #endregion
 
         public virtual void Update(CRUD crud, ISQLModel model)
@@ -80,17 +80,17 @@ namespace Backend.Source
             switch (crud)
             {
                 case CRUD.INSERT:
-                    Add(model);
+                    Add((M)model);
                     Controller?.GoLast();
                     break;
                 case CRUD.UPDATE:
                     break;
                 case CRUD.DELETE:
-                    bool removed = Remove(model);
+                    bool removed = Remove((M)model);
                     if (!removed) break;
-                    if (navigator != null) 
+                    if (_navigator != null) 
                     {
-                        if (navigator.BOF && !navigator.NoRecords) Controller?.GoFirst();
+                        if (_navigator.BOF && !_navigator.NoRecords) Controller?.GoFirst();
                         else Controller?.GoPrevious();
                     }
                     break;
@@ -102,17 +102,17 @@ namespace Backend.Source
         /// </summary>
         /// <param name="source"> An IAsyncEnumerable&lt;ISQLModel></param>
         /// <returns>Task&lt;RecordSource></returns>
-        public static async Task<DataSource> CreateFromAsyncList(IAsyncEnumerable<ISQLModel> source) =>
-        new DataSource(await source.ToListAsync());
+        public static async Task<DataSource<M>> CreateFromAsyncList(IAsyncEnumerable<M> source) =>
+        new DataSource<M>(await source.ToListAsync());
 
         public virtual string RecordPositionDisplayer()
         {
-            if (navigator == null) throw new NoNavigatorException();
+            if (_navigator == null) throw new NoNavigatorException();
             return true switch
             {
-                true when navigator.NoRecords => "NO RECORDS",
-                true when navigator.IsNewRecord => "New Record",
-                _ => $"Record {navigator?.RecNum} of {navigator?.RecordCount}",
+                true when _navigator.NoRecords => "NO RECORDS",
+                true when _navigator.IsNewRecord => "New Record",
+                _ => $"Record {_navigator?.RecNum} of {_navigator?.RecordCount}",
             };
         }
 
@@ -120,7 +120,8 @@ namespace Backend.Source
         {
             ParentSource?.RemoveChild(this);
             Controller?.Dispose();
-            navigator?.Dispose();
+            _navigator?.Dispose();
+            Clear();
             GC.SuppressFinalize(this);
         }
 

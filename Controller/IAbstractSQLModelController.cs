@@ -41,6 +41,7 @@ namespace Backend.Controller
         /// <value>A RecordSource</value>
         public IDataSource Source { get; }
 
+        public bool EOF { get; }
         /// <summary>
         /// Gets and Sets whether or no a new Record can be added. Default value is true.
         /// </summary>

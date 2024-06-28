@@ -7,7 +7,7 @@ using Backend.Events;
 
 namespace Backend.Controller
 {
-    public abstract class AbstractSQLModelController : IAbstractSQLModelController
+    public abstract class AbstractSQLModelController<M> : IAbstractSQLModelController where M : ISQLModel, new()
     {
         #region Variables
         protected bool _allowNewRecord = true;
@@ -16,8 +16,9 @@ namespace Backend.Controller
         #region Properties
         public IAbstractDatabase Db { get; protected set; } = null!;        
         public abstract int DatabaseIndex { get; }
-        public IDataSource Source { get; protected set; }
-        protected INavigator Navigator => Source.Navigate();
+        public IDataSource Source => DataSource;
+        public IDataSource<M> DataSource { get; protected set; }
+        protected INavigator<M> Navigator => DataSource.Navigate();
         public virtual bool AllowNewRecord
         {
             get => _allowNewRecord;
@@ -29,6 +30,7 @@ namespace Backend.Controller
         }
         public virtual ISQLModel? CurrentModel { get; set; }
         public virtual string Records { get; protected set; } = string.Empty;
+        public bool EOF => Navigator.EOF;
         #endregion
 
         #region Events
@@ -47,11 +49,15 @@ namespace Backend.Controller
                 Console.WriteLine(e.Message);
             }
 
-            Source = InitSource();
+            DataSource = InitSource();
             GoFirst();
         }
 
-        protected virtual IDataSource InitSource() => new DataSource(Db, this);
+        /// <summary>
+        /// Override this method to set the <see cref="DataSource"/> property on Object's Init
+        /// </summary>
+        /// <returns></returns>
+        protected virtual IDataSource<M> InitSource() => new DataSource<M>(Db, this);
         public ICollection<ISQLModel>? SourceAsCollection()
         {
             try
@@ -80,7 +86,7 @@ namespace Backend.Controller
             if (!CanMove()) return false;
             if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoNext)) return false; //Event was cancelled
 
-            bool moved = Navigator.MoveNext();
+            bool moved = Navigator.GoNext();
             if (!moved)
             {
                 Records = Source.RecordPositionDisplayer();
@@ -103,7 +109,7 @@ namespace Backend.Controller
 
             if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoPrevious)) return false; //Event was cancelled
 
-            bool moved = Navigator.MovePrevious();
+            bool moved = Navigator.GoPrevious();
             if (!moved) return false;
 
             try 
@@ -127,7 +133,7 @@ namespace Backend.Controller
 
             if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoLast)) return false; //Event was cancelled
 
-            bool moved = Navigator.MoveLast();
+            bool moved = Navigator.GoLast();
 
             if (!moved)
             {
@@ -151,7 +157,7 @@ namespace Backend.Controller
 
             if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoFirst)) return false; //Event was cancelled
 
-            bool moved = Navigator.MoveFirst();
+            bool moved = Navigator.GoFirst();
 
             if (!moved)
             {
@@ -175,7 +181,7 @@ namespace Backend.Controller
 
             if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoNew)) return false; //Event was cancelled
 
-            bool moved = Navigator.MoveNew();
+            bool moved = Navigator.GoNew();
 
             if (!moved)
             {
@@ -184,7 +190,8 @@ namespace Backend.Controller
                     CurrentModel = null;
                 return false;
             }
-            CurrentModel = Navigator.Current;
+
+            CurrentModel = new M();
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoNew)) return false; //Event was cancelled
 
@@ -198,7 +205,7 @@ namespace Backend.Controller
 
             if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoAt)) return false; //Event was cancelled
 
-            bool moved = Navigator.MoveAt(index);
+            bool moved = Navigator.GoAt(index);
             if (!moved) return false;
             CurrentModel = Navigator.Current;
 
@@ -222,7 +229,7 @@ namespace Backend.Controller
 
             if (InvokeBeforeRecordNavigationEvent(RecordMovement.GoAt)) return false; //Event was cancelled
 
-            bool moved = Navigator.MoveAt(record);
+            bool moved = Navigator.GoAt(record);
             if (!moved) return false;
 
             CurrentModel = record;

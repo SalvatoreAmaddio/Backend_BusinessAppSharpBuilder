@@ -8,7 +8,7 @@ namespace Backend.Source
     /// For instance, this enumerator can move up and down the IEnumerable.
     /// This interface is meant for dealing with IEnumerable&lt;<see cref="ISQLModel"/>&gt; only.
     /// </summary>
-    public interface INavigator : IEnumerator<ISQLModel>, INav
+    public interface INavigator<M> : IEnumerator<M>, INav where M : ISQLModel, new()
     { }
     
     /// <summary>
@@ -58,13 +58,15 @@ namespace Backend.Source
         /// </summary>
         public int RecNum { get; }
 
+        public bool GoNext();
+
         /// <summary>
         /// Moves the Enumerator to the previous element in the collection.
         /// </summary>
         /// <returns>
         /// true if the Enumerator did move.
         /// </returns>
-        public bool MovePrevious();
+        public bool GoPrevious();
 
         /// <summary>
         /// Moves the Enumerator to the first element in the collection.
@@ -72,7 +74,7 @@ namespace Backend.Source
         /// <returns>
         /// true if the Enumerator could move.
         /// </returns>
-        public bool MoveFirst();
+        public bool GoFirst();
 
         /// <summary>
         /// Moves the Enumerator to the last element in the collection.
@@ -80,7 +82,7 @@ namespace Backend.Source
         /// <returns>
         /// true if the Enumerator could move.
         /// </returns>
-        public bool MoveLast();
+        public bool GoLast();
 
         /// <summary>
         /// Moves the Enumerator beyond the last element in the collection indicating a new Record can be added.
@@ -89,7 +91,7 @@ namespace Backend.Source
         /// <returns>
         /// true if the Enumerator could move.
         /// </returns>
-        public bool MoveNew();
+        public bool GoNew();
 
         /// <summary>
         /// Moves the Enumerator to the element at the given position in collection.
@@ -98,7 +100,7 @@ namespace Backend.Source
         /// <returns>
         /// true if the Enumerator could move.
         /// </returns>
-        public bool MoveAt(int index);
+        public bool GoAt(int index);
 
         /// <summary>
         /// Moves the Enumerator to the given element in collection.
@@ -107,7 +109,7 @@ namespace Backend.Source
         /// <returns>
         /// true if the Enumerator could move.
         /// </returns>
-        public bool MoveAt(object record);
+        public bool GoAt(object record);
 
         /// <summary>
         /// Tells how many records are in the collection.
@@ -116,7 +118,7 @@ namespace Backend.Source
         public int RecordCount { get; }
 
         /// <summary>
-        /// Tells if the Enumerator can add a new record. See also <see cref="MoveNew"/>
+        /// Tells if the Enumerator can add a new record. See also <see cref="GoNew"/>
         /// </summary>
         public bool AllowNewRecord { get; set; }
     }
