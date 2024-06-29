@@ -23,17 +23,34 @@ namespace Backend.Source
         public bool NoRecords => !IsNewRecord && IsEmpty;
         public bool AllowNewRecord { get; set; } = true;
         public int RecNum => Index + 1;
+
+        /// <summary>
+        /// Gets the element in the collection at the current position of the enumerator.
+        /// </summary>
+        /// <returns>The element in the collection at the current position of the enumerator.</returns>
+        /// <remarks>This property is used by foreach loops and other Enumerator operations. Do not use this property for fetching the current record. Use <see cref="CurrenRecord"/> instead.</remarks>
         public M Current
         {
             get
             {
-                if (Index > _position) _position = Index;
                 if (_position >= 0 && _position < _records.Length)
                     return _records[_position];
 
                 throw new InvalidOperationException($"{typeof(M).Name}'s Invalid state: New Record: {IsNewRecord}; IsEmpty: {IsEmpty}; Index: {_position}; Record Count: {RecordCount}");
             }
         }
+        
+        public M CurrentRecord
+        {
+            get
+            {
+                if (Index >= 0 && Index < _records.Length)
+                    return _records[Index];
+
+                throw new InvalidOperationException($"{typeof(M).Name}'s Invalid state: New Record: {IsNewRecord}; IsEmpty: {IsEmpty}; Index: {Index}; Record Count: {RecordCount}");
+            }
+        }
+
         object? IEnumerator.Current
         {
             get

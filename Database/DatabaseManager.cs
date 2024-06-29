@@ -9,12 +9,29 @@ namespace Backend.Database
     public sealed class DatabaseManager
     {
         /// <summary>
+        /// Represents a lazily-initialized singleton instance of <see cref="DatabaseManager"/>.
+        /// </summary>
+        private static readonly Lazy<DatabaseManager> lazyInstance = new(() => new DatabaseManager());
+
+        /// <summary>
+        /// List of databases managed by the <see cref="DatabaseManager"/>.
+        /// </summary>
+        private readonly List<IAbstractDatabase> Databases;
+
+        /// <summary>
+        /// Gets the number of <see cref="IAbstractDatabase"/> instances.
+        /// </summary>
+        public static int Count => lazyInstance.Value.Databases.Count;
+
+        /// <summary>
         /// The entity map representing the tree structure of the database models.
         /// </summary>
         public static readonly EntityMap Map = new();
 
-        private static readonly Lazy<DatabaseManager> lazyInstance = new(() => new DatabaseManager());
-        private readonly List<IAbstractDatabase> Databases;
+        /// <summary>
+        /// Private constructor to initialize an instance of the <see cref="DatabaseManager"/>.
+        /// </summary>
+        private DatabaseManager() => Databases = [];
 
         /// <summary>
         /// Gets the list of all <see cref="IAbstractDatabase"/> instances.
@@ -36,13 +53,6 @@ namespace Backend.Database
             lazyInstance.Value.Databases.Remove(db);
             db.Dispose();
         }
-
-        /// <summary>
-        /// Gets the number of <see cref="IAbstractDatabase"/> instances.
-        /// </summary>
-        public static int Count => lazyInstance.Value.Databases.Count;
-
-        private DatabaseManager() => Databases = new List<IAbstractDatabase>();
 
         /// <summary>
         /// For each database, it concurrently calls the <see cref="IAbstractDatabase.RetrieveAsync(string?, List{QueryParameter}?)"/>.

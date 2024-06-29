@@ -9,7 +9,14 @@ namespace Backend.Source
     /// </summary>
     /// <typeparam name="M">A type that implements <see cref="ISQLModel"/> and has a parameterless constructor.</typeparam>
     public interface INavigator<M> : IEnumerator<M>, INav where M : ISQLModel, new()
-    { }
+    {
+        /// <summary>
+        /// Gets the current record in the collection. Do not use <see cref="IEnumerator{T}.Current"/> for fetch the currently selected record.
+        /// </summary>
+        /// <returns>The element in the collection at the current position of the enumerator.</returns>
+        public M CurrentRecord { get; }
+
+    }
 
     /// <summary>
     /// Defines a set of methods and properties that each <see cref="IDataSource{M}"/> must implement as their <see cref="INavigator{M}"/>.

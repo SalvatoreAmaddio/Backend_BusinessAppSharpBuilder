@@ -125,7 +125,7 @@ namespace Backend.Controller
                 return Navigator.EOF ? GoNew() : false;
             }
 
-            CurrentRecord = Navigator.Current;
+            CurrentRecord = Navigator.CurrentRecord;
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoNext)) return false; //Event was cancelled
 
@@ -144,7 +144,7 @@ namespace Backend.Controller
 
             try
             {
-                CurrentRecord = Navigator.Current;
+                CurrentRecord = Navigator.CurrentRecord;
             }
             catch
             {
@@ -173,7 +173,7 @@ namespace Backend.Controller
                 return false;
             }
 
-            CurrentRecord = Navigator.Current;
+            CurrentRecord = Navigator.CurrentRecord;
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoLast)) return false; //Event was cancelled
 
@@ -197,7 +197,7 @@ namespace Backend.Controller
                 return false;
             }
 
-            CurrentRecord = Navigator.Current;
+            CurrentRecord = Navigator.CurrentRecord;
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoFirst)) return false; //Event was cancelled
 
@@ -236,7 +236,7 @@ namespace Backend.Controller
 
             bool moved = Navigator.GoAt(index);
             if (!moved) return false;
-            CurrentRecord = Navigator.Current;
+            CurrentRecord = Navigator.CurrentRecord;
 
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoAt)) return false; //Event was cancelled
 
