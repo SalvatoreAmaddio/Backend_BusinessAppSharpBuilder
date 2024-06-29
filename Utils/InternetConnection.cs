@@ -14,7 +14,7 @@ namespace Backend.Utils
         /// <summary>
         /// Gets the singleton instance of the <see cref="InternetConnection"/> class.
         /// </summary>
-        public static InternetConnection Event => lazyInstance.Value;
+        public static InternetConnection Me => lazyInstance.Value;
 
         [LibraryImport("wininet.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
