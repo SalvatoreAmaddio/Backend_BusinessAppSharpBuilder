@@ -1,152 +1,169 @@
 ﻿using Backend.Database;
+using Backend.Events;
 using System.Data.Common;
 using System.Reflection;
 
 namespace Backend.Model
 {
-    public interface IReflector : IDisposable 
+    /// <summary>
+    /// Defines a set of methods to reflect over an object's properties.
+    /// </summary>
+    public interface IReflector : IDisposable
     {
-        public bool PropertyExists(string properyName);
-        public object? GetPropertyValue(string properyName);
-        public IEnumerable<PropertyInfo> GetPropertiesInfo();
+        /// <summary>
+        /// Determines whether a property with the specified name exists.
+        /// </summary>
+        /// <param name="propertyName">The name of the property to check.</param>
+        /// <returns>true if the property exists; otherwise, false.</returns>
+        bool PropertyExists(string propertyName);
 
+        /// <summary>
+        /// Gets the value of the property with the specified name.
+        /// </summary>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <returns>The value of the property, or null if the property does not exist.</returns>
+        object? GetPropertyValue(string propertyName);
+
+        /// <summary>
+        /// Gets information about all properties of the object.
+        /// </summary>
+        /// <returns>An enumerable collection of <see cref="PropertyInfo"/> objects.</returns>
+        IEnumerable<PropertyInfo> GetPropertiesInfo();
     }
 
     /// <summary>
-    /// This interface defines a set of methods and properties that allow a
-    /// <see cref="AbstractDatabase"/> object to talk to a <see cref="AbstractSQLModel"/> object
+    /// Defines a set of methods and properties that allow a <see cref="AbstractDatabase{M}"/> object to interact with a <see cref="AbstractSQLModel"/> object.
     /// </summary>
     public interface ISQLModel : IReflector
     {
+        #region Properties
         /// <summary>
-        /// This method allows the creation of an object by reading the DataReader.
-        /// <para></para>
-        /// <example>
-        /// How to use:<para></para>
-        /// Create a constructor as follow:
-        /// <code>
-        /// public Person(DbDataReader reader) { ... }
-        /// </code>
-        /// The override the method as follow:
-        /// <code>
-        /// public override ISQLModel Read(DbDataReader reader) => new Person(reader);
-        /// </code>
-        /// </example>
+        /// Gets or sets the SQL statement to count all rows in a table.
+        /// This property has a default auto-generated query.
         /// </summary>
-        /// <param name="reader">A DbDataReader object</param>
-        /// <returns>a new instance that implements <see cref="ISQLModel"/> or extends <see cref="AbstractSQLModel"/></returns>
-        public ISQLModel Read(DbDataReader reader);
+        string RecordCountQry { get; set; }
 
         /// <summary>
-        /// Gets and Sets the select statement to count all rows in a table.
-        /// <para/>
-        /// This property comes with a default auto-generate query
+        /// Gets or sets the SELECT statement used by the <see cref="AbstractDatabase{M}"/> class.
+        /// This property has a default auto-generated query.
         /// </summary>
-        /// <value>A string.</value>
-        public string RecordCountQry { get; set; }
+        string SelectQry { get; set; }
 
         /// <summary>
-        /// Gets and Sets the Select Statement used by the <see cref="AbstractDatabase"/> class.
-        /// <para/>
-        /// This property comes with a default auto-generated query
+        /// Gets or sets the UPDATE statement used by the <see cref="AbstractDatabase{M}"/> class.
+        /// This property has a default auto-generated query.
         /// </summary>
-        /// <value>A string representing the Select Statement.</value>
-        public string SelectQry { get; set; }
+        string UpdateQry { get; set; }
 
         /// <summary>
-        /// Gets and Sets the Update Statement used by the <see cref="AbstractDatabase"/> class.
-        /// <para/>
-        /// This property comes with a default auto-generated query.
+        /// Gets or sets the DELETE statement used by the <see cref="AbstractDatabase{M}"/> class.
+        /// This property has a default auto-generated query.
         /// </summary>
-        /// <value>A string representing the Update Statement.</value>
-        public string UpdateQry { get; set; }
+        string DeleteQry { get; set; }
 
         /// <summary>
-        /// Gets and Sets the Delete Statement used by the <see cref="AbstractDatabase"/> class.
-        /// <para/>
-        /// This property comes with a default auto-generated query.
+        /// Gets or sets the INSERT statement used by the <see cref="AbstractDatabase{M}"/> class.
+        /// This property has a default auto-generated query.
         /// </summary>
-        /// <value>A string representing the Delete Statement.</value>
-        public string DeleteQry { get; set; }
+        string InsertQry { get; set; }
+        #endregion
+
+        #region Events
+        event BeforeRecordDeleteEventHandler? BeforeRecordDelete;
+        event AfterRecordDeleteEventHandler? AfterRecordDelete;
+        #endregion
 
         /// <summary>
-        /// Gets and Sets the Insert Statement used by the <see cref="AbstractDatabase"/> class.
-        /// <para/>
-        /// This property comes with a auto-generated query.
+        /// Creates an instance of the model by reading data from a <see cref="DbDataReader"/>.
         /// </summary>
-        /// <value>A string representing the Insert Statement.</value>
-        public string InsertQry { get; set; }
+        /// <param name="reader">A <see cref="DbDataReader"/> object.</param>
+        /// <returns>A new instance of an object that implements <see cref="ISQLModel"/>.</returns>
+        ISQLModel Read(DbDataReader reader);
 
-        public IEnumerable<string> GetEntityFieldNames();
-        public IEnumerable<ITableField> GetEntityFields();
-        
         /// <summary>
-        /// This method is used to identify which Properties serve as Table Fields such as TEXT, DATE, INT, and so on.<para/>
-        /// This method is used to auto-generate queries through Reflection.
+        /// Gets the names of the fields in the entity.
         /// </summary>
-        /// <returns>Returns an IEnumerable containing all properties marked with the [<see cref="Field"/>] attribute.</returns>
-        public IEnumerable<ITableField> GetTableFields();
+        /// <returns>An enumerable collection of field names.</returns>
+        IEnumerable<string> GetEntityFieldNames();
 
         /// <summary>
-        /// This method is used to identify which Properties serve as Foreign Keys.<para/>
-        /// This method is used to auto-generate queries through Reflection.
+        /// Gets the fields in the entity.
         /// </summary>
-        /// <returns>Returns an IEnumerable containing all properties marked with the [<see cref="FK"/>] attribute.</returns>
-        public IEnumerable<ITableField> GetForeignKeys();
-
+        /// <returns>An enumerable collection of <see cref="ITableField"/> objects.</returns>
+        IEnumerable<ITableField> GetEntityFields();
 
         /// <summary>
-        /// This method is used to identify which Property serves as Primary Key.<para/>
-        /// This method is used to auto-generate queries through Reflection.<para/>
-        /// It is also used by the <see cref="IsNewRecord"/> method.
+        /// Identifies the properties that serve as table fields.
+        /// This method is used to auto-generate queries through reflection.
         /// </summary>
-        /// <returns>Returns the property marked with the [<see cref="PK"/>] attribute.</returns>
-        public TableField? GetPrimaryKey();
+        /// <returns>An enumerable collection of properties marked with the [<see cref="Field"/>] attribute.</returns>
+        IEnumerable<ITableField> GetTableFields();
 
         /// <summary>
-        /// This method is used to auto-generate queries through Reflection.
+        /// Identifies the properties that serve as foreign keys.
+        /// This method is used to auto-generate queries through reflection.
         /// </summary>
-        /// <returns>A string telling which Table this class represent in a Database</returns>
-        public string GetTableName();
+        /// <returns>An enumerable collection of properties marked with the [<see cref="FK"/>] attribute.</returns>
+        IEnumerable<ITableField> GetForeignKeys();
 
         /// <summary>
-        /// This method is used to tell if a record is a new record. By Default, this check is done by assessing if the Primary Key is equal to zero.
+        /// Identifies the property that serves as the primary key.
+        /// This method is used to auto-generate queries through reflection and by the <see cref="IsNewRecord"/> method.
         /// </summary>
-        /// <returns>True if the object is a new record.</returns>
-        public bool IsNewRecord();
+        /// <returns>The property marked with the [<see cref="PK"/>] attribute.</returns>
+        TableField? GetPrimaryKey();
 
         /// <summary>
-        /// This method allows to define the parameters used in a query.
+        /// Gets the name of the table that this class represents in the database.
+        /// This method is used to auto-generate queries through reflection.
+        /// </summary>
+        /// <returns>A string representing the table name.</returns>
+        string GetTableName();
+
+        /// <summary>
+        /// Determines whether the record is a new record.
+        /// By default, this check is done by assessing if the primary key is equal to zero.
+        /// </summary>
+        /// <returns>true if the object is a new record; otherwise, false.</returns>
+        bool IsNewRecord();
+
+        /// <summary>
+        /// Defines the parameters used in a query.
         /// Each parameter is a <see cref="QueryParameter"/> object.
-        /// <para>For Example:</para>
+        /// <para>Example usage:</para>
         /// <code>
-        ///public override void SetParameters(List&lt;<see cref="QueryParameter"/>&gt;? parameters)
-        ///{
-        ///parameters?.Add(new ("", PersonID));
-        ///parameters?.Add(new ("", Name));
-        ///}
+        /// public override void SetParameters(List&lt;QueryParameter&gt;? parameters)
+        /// {
+        ///     parameters?.Add(new QueryParameter("", PersonID));
+        ///     parameters?.Add(new QueryParameter("", Name));
+        /// }
         /// </code>
         /// </summary>
-        /// <param name="parameters">A list of IParameterObject</param>
-        public void SetParameters(List<QueryParameter>? parameters);
+        /// <param name="parameters">A list of <see cref="QueryParameter"/> objects.</param>
+        void SetParameters(List<QueryParameter>? parameters);
 
         /// <summary>
-        ///By default, this method check for any Property marked as <see cref="Mandatory"/>. If any is found and is null, it will return false.
-        ///You can override this method to implement some additional logic by which Update and Insert can fire if certain conditions are met.
-        ///<para/>
-        ///For instance, if some fields are supposed to greater than a given number, or must have a specific value/format, you can implement your logic here.
-        ///</summary>
-        ///<returns>true if all conditions are met; False if one ore more condition are not met.</returns>
-        public bool AllowUpdate();
-
-
-        /// <summary>
-        /// Gets a list of Properties marked with the <see cref="Mandatory"/> attribute but they are null.
+        /// Checks whether the conditions for an update or insert operation are met.
+        /// By default, this method checks for any property marked as <see cref="Mandatory"/> and returns false if any are null.
+        /// Override this method to implement additional logic for conditions that must be met for updates or inserts.
         /// </summary>
-        /// <returns>A string</returns>
-        public string GetEmptyMandatoryFields();
+        /// <returns>true if all conditions are met; otherwise, false.</returns>
+        bool AllowUpdate();
 
-        public void InvokeBeforeRecordDelete();
-        public void InvokeAfterRecordDelete();
+        /// <summary>
+        /// Gets a list of properties marked with the <see cref="Mandatory"/> attribute that are null.
+        /// </summary>
+        /// <returns>A string listing the empty mandatory fields.</returns>
+        string GetEmptyMandatoryFields();
+
+        /// <summary>
+        /// Invokes the event before a record is deleted.
+        /// </summary>
+        void InvokeBeforeRecordDelete();
+
+        /// <summary>
+        /// Invokes the event after a record is deleted.
+        /// </summary>
+        void InvokeAfterRecordDelete();
     }
 }

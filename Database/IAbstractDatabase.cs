@@ -7,160 +7,226 @@ using Backend.Enums;
 namespace Backend.Database
 {
     /// <summary>
-    /// Interface that defines the properties and methods that a Database class shoud implement.
+    /// Interface that defines the properties and methods that a database class should implement.
     /// </summary>
     public interface IAbstractDatabase : IDisposable
     {
-        public Type ModelType { get; }
-
+        #region Properties
         /// <summary>
-        /// Gets and Sets the name of the Database to connect to..
+        /// Gets the type of the model associated with the database.
         /// </summary>
-        /// <value>A string telling which name of the database.</value>
-        public string DatabaseName { get; set; }
+        Type ModelType { get; }
 
         /// <summary>
-        /// Gets or Sets the <see cref="ISQLModel"/> the database must refer to.
+        /// Gets or sets the name of the database to connect to.
+        /// </summary>
+        /// <value>A string representing the name of the database.</value>
+        string DatabaseName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="ISQLModel"/> that the database must refer to.
         /// Set this property to take advantage of auto-generated queries.
         /// </summary>
         /// <value>An object implementing <see cref="ISQLModel"/> or extending <see cref="AbstractSQLModel"/>.</value>
-        public ISQLModel Model { get; set; }
+        ISQLModel Model { get; set; }
 
         /// <summary>
-        /// Gets and sets the Recordsource containing the records yield by 
+        /// Gets the record source containing the records yielded by 
         /// the <see cref="Retrieve(string?, List{QueryParameter}?)"/> 
-        /// or the <see cref="RetrieveAsync(string?, List{QueryParameter}?)"/>.<para/>
-        /// 
+        /// or the <see cref="RetrieveAsync(string?, List{QueryParameter}?)"/> methods.
         /// </summary>
-        /// <value>A Recordsource object</value>
-        public MasterSource MasterSource { get; }
+        /// <value>A <see cref="MasterSource"/> object.</value>
+        MasterSource MasterSource { get; }
+        #endregion
 
-        public Task ExecuteQueryAsync(string sql, List<QueryParameter>? parameters = null);
-        public void ExecuteQuery(string sql, List<QueryParameter>? parameters = null);
+        #region Connection
+        /// <summary>
+        /// Checks if a connection to the database can be made.
+        /// <para><c>IMPORTANT:</c></para> The connection closes as soon as the method terminates.
+        /// </summary>
+        /// <returns>true if the connection was made; otherwise, false.</returns>
+        bool AttemptConnection();
+        /// <summary>
+        /// Asynchronously checks if a connection to the database can be made.
+        /// <para><c>IMPORTANT:</c></para> The connection closes as soon as the method terminates.
+        /// </summary>
+        /// <returns>A task representing the asynchronous operation that returns true if the connection was made; otherwise, false.</returns>
+        Task<bool> AttemptConnectionAsync();
 
         /// <summary>
-        /// Relace the Records in the <see cref="Source.MasterSource"/>
+        /// Returns a string representing the connection string to the database.
         /// </summary>
-        /// <param name="newRecords"></param>
-        public void ReplaceRecords(IEnumerable<ISQLModel> newRecords);
+        /// <returns>A string representing the connection string.</returns>
+        string ConnectionString();
 
         /// <summary>
-        /// This method should return a string representing the connection string to the Database.
-        /// </summary>
-        /// <returns>A string</returns>
-        public string ConnectionString();
-
-        /// <summary>
-        /// It creates a DBConnection object that handles the connection to the database.
+        /// Creates a <see cref="DbConnection"/> object that handles the connection to the database asynchronously.
         /// <para/>
-        /// For Example:
+        /// For example:
         /// <code>
         ///     return new SQLiteConnection(ConnectionString());
         /// </code>
-        /// see also the <seealso cref="ConnectionString"/>
+        /// See also: <seealso cref="ConnectionString"/>
         /// </summary>
-        /// <returns>A <see cref="DbConnection"/> object</returns>
-        public Task<DbConnection> CreateConnectionObjectAsync();
+        /// <returns>A task representing the asynchronous operation, containing a <see cref="DbConnection"/> object.</returns>
+        Task<DbConnection> CreateConnectionObjectAsync();
 
         /// <summary>
-        /// It creates a DBConnection object that handles the connection to the database.
+        /// Creates a <see cref="DbConnection"/> object that handles the connection to the database.
         /// <para/>
-        /// For Example:
+        /// For example:
         /// <code>
         ///     return new SQLiteConnection(ConnectionString());
         /// </code>
-        /// see also the <seealso cref="ConnectionString"/>
+        /// See also: <seealso cref="ConnectionString"/>
         /// </summary>
-        /// <returns>A <see cref="DbConnection"/> object</returns>
-        public DbConnection CreateConnectionObject();
+        /// <returns>A <see cref="DbConnection"/> object.</returns>
+        DbConnection CreateConnectionObject();
+        #endregion
+
+        #region Execute Query
+        /// <summary>
+        /// Executes a SQL query asynchronously.
+        /// </summary>
+        /// <param name="sql">The SQL query to execute.</param>
+        /// <param name="parameters">The list of parameters for the query, can be null.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        Task ExecuteQueryAsync(string sql, List<QueryParameter>? parameters = null);
 
         /// <summary>
-        /// This method select the data from the database.
+        /// Executes a SQL query.
+        /// </summary>
+        /// <param name="sql">The SQL query to execute.</param>
+        /// <param name="parameters">The list of parameters for the query, can be null.</param>
+        void ExecuteQuery(string sql, List<QueryParameter>? parameters = null);
+        #endregion
+
+        /// <summary>
+        /// Replaces the records in the <see cref="MasterSource"/>.
+        /// </summary>
+        /// <param name="newRecords">The new records to replace the existing ones.</param>
+        void ReplaceRecords(IEnumerable<ISQLModel> newRecords);
+
+        #region Retrieve Records
+        /// <summary>
+        /// Selects data from the database.
         /// <para/>
-        /// Parameters: <para/>
+        /// Parameters:
         /// <list type="bullet">
         /// <item>
-        ///<term><paramref name="sql"/></term>
-        ///<description>if null, the <see cref="Model"/> property sets this parameter to the auto-generated SQL Statement. Otherwise, you can provide your own Select Statement.</description>
-        ///</item>
+        /// <term><paramref name="sql"/></term>
+        /// <description>If null, the <see cref="Model"/> property sets this parameter to the auto-generated SQL statement. Otherwise, you can provide your own select statement.</description>
+        /// </item>
         /// <item>
-        ///<term><paramref name="parameters"/></term>
-        ///<description>If null, the <see cref="Model"/> property sets this parameter to the <see cref="ISQLModel.SetParameters(List{IParameterObject}?)"/>. defined in your class. Otherways you can provide your own <c>List&lt;IParameterObject&gt;"</c> </description>
-        ///</item>
+        /// <term><paramref name="parameters"/></term>
+        /// <description>If null, the <see cref="Model"/> property sets this parameter to the <see cref="ISQLModel.SetParameters(List{IParameterObject}?)"/> defined in your class. Otherwise, you can provide your own list of parameters.</description>
+        /// </item>
         /// </list>
         /// </summary>
-        /// <param name="sql">The select statement, it can be null</param>
-        /// <param name="parameters"> A List of object parameter, it can be null</param>
-        /// <returns> a IEnumerable&lt;<see cref="ISQLModel"/>&gt; object which can be used to create a <see cref="DataSource"/></returns>
+        /// <param name="sql">The select statement, can be null.</param>
+        /// <param name="parameters">The list of parameters, can be null.</param>
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="ISQLModel"/> objects that can be used to create a <see cref="DataSource"/>.</returns>
         /// <exception cref="NoModelException">Thrown if the <see cref="Model"/> is null.</exception>
-        public IEnumerable<ISQLModel> Retrieve(string? sql = null, List<QueryParameter>? parameters = null);
-
-        public IAsyncEnumerable<ISQLModel> RetrieveAsync(string? sql = null, List<QueryParameter>? parameters = null);
+        IEnumerable<ISQLModel> Retrieve(string? sql = null, List<QueryParameter>? parameters = null);
 
         /// <summary>
-        /// This method performs a CRUD operation against the database.
+        /// Selects data from the database asynchronously.
+        /// </summary>
+        /// <param name="sql">The select statement, can be null.</param>
+        /// <param name="parameters">The list of parameters, can be null.</param>
+        /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="ISQLModel"/> objects.</returns>
+        IAsyncEnumerable<ISQLModel> RetrieveAsync(string? sql = null, List<QueryParameter>? parameters = null);
+        #endregion
+
+        #region CRUD
+        /// <summary>
+        /// Performs a CRUD operation against the database.
         /// <para/>
-        /// Parameters: <para/>
+        /// Parameters:
         /// <list type="bullet">
         /// <item>
         /// <term><paramref name="crud"/></term>
-        /// <description>a <see cref="CRUD"/> enum that tells what kind of CRUD operation must be performed.</description>
+        /// <description>A <see cref="CRUD"/> enum that specifies the type of CRUD operation to perform.</description>
         /// </item>
         /// <item>
-        ///<term><paramref name="sql"/></term>
-        ///<description>If null, the <see cref="Model"/> property sets this parameter to the auto-generated SQL Statement. Otherwise, you can provide your own CRUD Statement.</description>
-        ///</item>
+        /// <term><paramref name="sql"/></term>
+        /// <description>If null, the <see cref="Model"/> property sets this parameter to the auto-generated SQL statement. Otherwise, you can provide your own CRUD statement.</description>
+        /// </item>
         /// <item>
-        ///<term><paramref name="parameters"/></term>
-        ///<description>If null, the <see cref="Model"/> property sets this parameter to the <see cref="ISQLModel.SetParameters(List{IParameterObject}?)"/>. defined in your class. Otherways you can provide your own <c>List&lt;IParameterObject&gt;"</c> </description>
-        ///</item>
+        /// <term><paramref name="parameters"/></term>
+        /// <description>If null, the <see cref="Model"/> property sets this parameter to the <see cref="ISQLModel.SetParameters(List{IParameterObject}?)"/> defined in your class. Otherwise, you can provide your own list of parameters.</description>
+        /// </item>
         /// </list>
         /// </summary>
-        /// <param name="sql">The select statement, it can be null</param>
-        /// <param name="parameters"> A List of object parameter, it can be null</param>
+        /// <param name="crud">The CRUD operation to perform.</param>
+        /// <param name="sql">The CRUD statement, can be null.</param>
+        /// <param name="parameters">The list of parameters, can be null.</param>
         /// <exception cref="NoModelException">Thrown if the <see cref="Model"/> is null.</exception>
-        public void Crud(CRUD crud, string? sql = null, List<QueryParameter>? parameters = null);
-        public Task<bool> CrudAsync(CRUD crud, string? sql = null, List<QueryParameter>? parameters = null);
+        void Crud(CRUD crud, string? sql = null, List<QueryParameter>? parameters = null);
 
         /// <summary>
-        /// It performs an aggregate query against the database. This method is meant to return one value only.
+        /// Performs a CRUD operation against the database asynchronously.
+        /// </summary>
+        /// <param name="crud">The CRUD operation to perform.</param>
+        /// <param name="sql">The CRUD statement, can be null.</param>
+        /// <param name="parameters">The list of parameters, can be null.</param>
+        /// <returns>A task representing the asynchronous operation, containing a boolean indicating the success of the operation.</returns>
+        Task<bool> CrudAsync(CRUD crud, string? sql = null, List<QueryParameter>? parameters = null);
+        #endregion
+
+        #region Aggregate Queries
+        /// <summary>
+        /// Performs an aggregate query against the database. This method is meant to return one value only.
         /// <para/>
         /// Parameters:
         /// <list type="bullet">
         /// <item>
-        ///<term><paramref name="parameters"/></term>
-        ///<description>null if your statement does not rely on parameters. This method won't use the <see cref="ISQLModel.SetParameters(List{IParameterObject}?)"/></description>
-        ///</item>
+        /// <term><paramref name="parameters"/></term>
+        /// <description>Null if your statement does not rely on parameters. This method won't use the <see cref="ISQLModel.SetParameters(List{IParameterObject}?)"/>.</description>
+        /// </item>
         /// </list>
         /// </summary>
-        /// <param name="sql">The statement the perform the aggregate function</param>
-        /// <param name="parameters">A List of object parameter, it can be null</param>
+        /// <param name="sql">The statement to perform the aggregate function.</param>
+        /// <param name="parameters">The list of parameters, can be null.</param>
         /// <returns>An object representing the result of an aggregate function.</returns>
-        public object? AggregateQuery(string sql, List<QueryParameter>? parameters = null);
-
-        public Task<object?> AggregateQueryAsync(string sql, List<QueryParameter>? parameters = null);
+        object? AggregateQuery(string sql, List<QueryParameter>? parameters = null);
 
         /// <summary>
-        /// It performs a Count query against the database. This method is meant to return one value only.
+        /// Performs an aggregate query against the database asynchronously. This method is meant to return one value only.
+        /// </summary>
+        /// <param name="sql">The statement to perform the aggregate function.</param>
+        /// <param name="parameters">The list of parameters, can be null.</param>
+        /// <returns>A task representing the asynchronous operation, containing an object representing the result of the aggregate function.</returns>
+        Task<object?> AggregateQueryAsync(string sql, List<QueryParameter>? parameters = null);
+
+        /// <summary>
+        /// Performs a count query against the database. This method is meant to return one value only.
         /// <para/>
         /// Parameters:
         /// <list type="bullet">
         /// <item>
-        ///<term><paramref name="sql"/></term>
-        ///<description>If null but the <see cref="Model"/> property is set, it sets this parameter to the auto-generated SQL Count Statement. Otherwise, you can provide your own CRUD Statement.</description>
-        ///</item>
+        /// <term><paramref name="sql"/></term>
+        /// <description>If null but the <see cref="Model"/> property is set, it sets this parameter to the auto-generated SQL count statement. Otherwise, you can provide your own CRUD statement.</description>
+        /// </item>
         /// <item>
-        ///<term><paramref name="parameters"/></term>
-        ///<description>null if your statement does not rely on parameters. This method won't use the <see cref="ISQLModel.SetParameters(List{IParameterObject}?)"/></description>
-        ///</item>
+        /// <term><paramref name="parameters"/></term>
+        /// <description>Null if your statement does not rely on parameters. This method won't use the <see cref="ISQLModel.SetParameters(List{IParameterObject}?)"/>.</description>
+        /// </item>
         /// </list>
         /// </summary>
-        /// <param name="sql">The statement the perform the count function</param>
-        /// <param name="parameters">A List of object parameter, it can be null</param>
-        /// <returns>How many records the query returned.</returns>
-        public long? CountRecords(string? sql = null, List<QueryParameter>? parameters = null);
+        /// <param name="sql">The statement to perform the count function.</param>
+        /// <param name="parameters">The list of parameters, can be null.</param>
+        /// <returns>The number of records the query returned.</returns>
+        long? CountRecords(string? sql = null, List<QueryParameter>? parameters = null);
 
-        public Task<long?> CountRecordsAsync(string? sql = null, List<QueryParameter>? parameters = null);
-
+        /// <summary>
+        /// Performs a count query against the database asynchronously. This method is meant to return one value only.
+        /// </summary>
+        /// <param name="sql">The statement to perform the count function.</param>
+        /// <param name="parameters">The list of parameters, can be null.</param>
+        /// <returns>A task representing the asynchronous operation, containing the number of records the query returned.</returns>
+        Task<long?> CountRecordsAsync(string? sql = null, List<QueryParameter>? parameters = null);
+        #endregion
     }
+
 }

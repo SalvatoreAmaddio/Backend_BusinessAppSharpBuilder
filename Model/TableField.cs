@@ -5,98 +5,120 @@ namespace Backend.Model
 {
 
     /// <summary>
-    /// This interface represents fields and methods that a Table Field object must have.
-    /// <para/>
-    /// See also <seealso cref="TableField"/>.
+    /// This interface represents fields and methods that a table field object must have.
     /// </summary>
+    /// <remarks>
+    /// See also <seealso cref="TableField"/>.
+    /// </remarks>
     public interface ITableField
     {
-        public FieldType FieldType { get; }
-     
         /// <summary>
-        /// The name of the field.
+        /// Gets the type of the field.
         /// </summary>
-        /// <value>A string</value>
+        public FieldType FieldType { get; }
+
+        /// <summary>
+        /// Gets the name of the field.
+        /// </summary>
+        /// <value>A string representing the field name.</value>
         public string Name { get; }
 
         /// <summary>
-        /// Get the current value of the field.
+        /// Gets the current value of the field.
         /// </summary>
-        /// <returns>An object</returns>
+        /// <returns>An object representing the current value of the field.</returns>
         public object? GetValue();
 
         /// <summary>
         /// Sets the value of the field.
         /// </summary>
-        /// <param name="value">An object</param>
+        /// <param name="value">An object representing the new value of the field.</param>
         public void SetValue(object? value);
     }
 
     /// <summary>
-    /// This interface extends <see cref="ITableField"/> and it represents a Foreign Key Field.
-    /// <para/>
-    /// See also <seealso cref="FKField"/>
+    /// This interface extends <see cref="ITableField"/> and represents a foreign key field.
     /// </summary>
+    /// <remarks>
+    /// See also <seealso cref="FKField"/>.
+    /// </remarks>
     public interface IFKField : ITableField
     {
         /// <summary>
-        /// The Primary Key of the Foreign Key Field.<para/>
-        /// For Example:
-        /// <code>
-        /// [FK] //The Foreign Key field
-        /// public Gender Gender { get => _gender; set => UpdateProperty(ref value, ref _gender);}
-        /// 
-        /// ....
-        /// 
-        /// public class Gender : AbstractModel 
-        /// {
-        ///     [PK]
-        ///     public long GenderID { ... } //Return this property.
-        /// }
-        /// </code>
+        /// Gets the primary key associated with the foreign key field.
         /// </summary>
-        /// <value>A TableField object</value>
+        /// <value>A <see cref="TableField"/> object representing the primary key.</value>
         public TableField? PK { get; }
 
         /// <summary>
-        /// Gets the name of the Class of the Property marked with <see cref="FK"/> attribute.
+        /// Gets the name of the class of the property marked with the <see cref="FK"/> attribute.
         /// </summary>
         public string ClassName { get; }
 
+        /// <summary>
+        /// Gets the type of the class of the property marked with the <see cref="FK"/> attribute.
+        /// </summary>
         public Type ClassType { get; }
     }
 
     /// <summary>
-    /// This class is meant for Reflection Purpose. It encapsulates an <see cref="AbstractField"/>, a <see cref="PropertyInfo"/> and an <see cref="ISQLModel"/>.
+    /// This class is meant for reflection purposes. It encapsulates an <see cref="AbstractField"/>, a <see cref="PropertyInfo"/>, and an <see cref="ISQLModel"/>.
     /// Thanks to this class, <see cref="AbstractSQLModel"/> can produce IEnumerables that are used for creating auto-generated queries.
-    /// <para/>
-    /// see also: <seealso cref="AbstractSQLModel.GetTableFields"/>, <seealso cref="AbstractSQLModel.GetTableFieldsAs{F}"/>, <seealso cref="AbstractSQLModel.GetForeignKeys"/> and <seealso cref="AbstractSQLModel.GetPrimaryKey()"/>.
     /// </summary>
-    public class TableField(AbstractField field, PropertyInfo property, ISQLModel model) : ITableField
+    /// <remarks>
+    /// See also: <seealso cref="AbstractSQLModel.GetTableFields"/>, <seealso cref="AbstractSQLModel.GetTableFieldsAs{F}"/>, <seealso cref="AbstractSQLModel.GetForeignKeys"/>, and <seealso cref="AbstractSQLModel.GetPrimaryKey()"/>.
+    /// </remarks>
+    public class TableField : ITableField
     {
-        private AbstractField Field { get; } = field;
-        private PropertyInfo Property { get; } = property;
-        private ISQLModel Model { get; } = model;
-        public FieldType FieldType { get; } = ReadFieldType(field.ToString());
-        public string Name { get; protected set; } = property.Name;
+        private AbstractField Field { get; }
+        private PropertyInfo Property { get; }
+        private ISQLModel Model { get; }
 
-        private static FieldType ReadFieldType(string value)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TableField"/> class with the specified field, property, and model.
+        /// </summary>
+        /// <param name="field">The abstract field associated with the table field.</param>
+        /// <param name="property">The property info associated with the table field.</param>
+        /// <param name="model">The SQL model associated with the table field.</param>
+        public TableField(AbstractField field, PropertyInfo property, ISQLModel model)
         {
-            if (value.Equals("PK")) return FieldType.PK;
-            if (value.Equals("Field")) return FieldType.Field;
-            return FieldType.FK;
+            Field = field;
+            Property = property;
+            Model = model;
+            FieldType = ReadFieldType(field.ToString());
+            Name = property.Name;
         }
 
         /// <summary>
-        /// It retrieves the value of a TableField's object, i.e. the value of a Property associated to a <see cref="AbstractField"/>.
+        /// Gets the type of the field.
         /// </summary>
-        /// <returns>Returns an object representing the value of the Property</returns>
+        public FieldType FieldType { get; }
+
+        /// <summary>
+        /// Gets the name of the field.
+        /// </summary>
+        public string Name { get; protected set; }
+
+        private static FieldType ReadFieldType(string value)
+        {
+            return value switch
+            {
+                "PK" => FieldType.PK,
+                "Field" => FieldType.Field,
+                _ => FieldType.FK
+            };
+        }
+
+        /// <summary>
+        /// Retrieves the value of a table field's object, i.e., the value of a property associated with an <see cref="AbstractField"/>.
+        /// </summary>
+        /// <returns>Returns an object representing the value of the property.</returns>
         public object? GetValue() => Property.GetValue(Model);
 
         /// <summary>
-        /// It sets the value of a TableField's object, i.e. the value of a Property associated to a <see cref="AbstractField"/>.
+        /// Sets the value of a table field's object, i.e., the value of a property associated with an <see cref="AbstractField"/>.
         /// </summary>
-        /// <param name="value">The value to give to the Property</param>
+        /// <param name="value">The value to set for the property.</param>
         public void SetValue(object? value) => Property.SetValue(Model, value);
 
         public override bool Equals(object? obj)
@@ -108,25 +130,47 @@ namespace Backend.Model
         }
 
         public override int GetHashCode() => HashCode.Combine(Field, Property, Model);
+
         public override string ToString() => $"{Model} - {Property.Name} - {Field}";
     }
 
     /// <summary>
-    /// This class is meant for Reflection Purpose. It represents a <see cref="FK"/> object.
-    /// See also <seealso cref="TableField"/>.
+    /// This class is meant for reflection purposes. It represents an <see cref="FK"/> object.
     /// </summary>
+    /// <remarks>
+    /// See also <seealso cref="TableField"/>.
+    /// </remarks>
     public class FKField : TableField, IFKField
     {
+        /// <summary>
+        /// Gets the primary key associated with the foreign key field.
+        /// </summary>
         public TableField? PK { get; }
+
+        /// <summary>
+        /// Gets the name of the class of the property marked with the <see cref="FK"/> attribute.
+        /// </summary>
         public string ClassName { get; }
+
+        /// <summary>
+        /// Gets the type of the class of the property marked with the <see cref="FK"/> attribute.
+        /// </summary>
         public Type ClassType { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FKField"/> class with the specified field, property, and model.
+        /// </summary>
+        /// <param name="field">The abstract field associated with the foreign key field.</param>
+        /// <param name="property">The property info associated with the foreign key field.</param>
+        /// <param name="model">The SQL model associated with the foreign key field.</param>
+        /// <exception cref="Exception">Thrown if the primary key associated with the foreign key field is not found.</exception>
         public FKField(AbstractField field, PropertyInfo property, ISQLModel model) : base(field, property, model)
         {
             ISQLModel? fk_model = (ISQLModel?)GetValue();
             fk_model ??= (ISQLModel)Activator.CreateInstance(property.PropertyType)!;
             ClassName = property.PropertyType.Name;
             ClassType = property.PropertyType;
-            PK = fk_model.GetPrimaryKey() ?? throw new Exception("NO PK IN FK");
+            PK = fk_model.GetPrimaryKey() ?? throw new Exception("No primary key found in the foreign key model.");
             Name = PK.Name;
         }
     }

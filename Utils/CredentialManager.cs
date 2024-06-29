@@ -4,29 +4,50 @@ using System.Text;
 namespace Backend.Utils
 {
     /// <summary>
-    /// This class holds a reference to default Credential Targets used within this Framework.
+    /// This class holds a reference to default credential targets used within this framework.
     /// </summary>
     public static class SysCredentailTargets
     {
-
         private static string _emailUserName = string.Empty;
-        public static string EmailApp 
-        { 
-            get=> $"{_emailUserName}EMAIL_APP_CREDENTIAL";
-            set => _emailUserName = value ;
+
+        /// <summary>
+        /// Gets or sets the email application credential target.
+        /// </summary>
+        public static string EmailApp
+        {
+            get => $"{_emailUserName}EMAIL_APP_CREDENTIAL";
+            set => _emailUserName = value;
         }
 
+        /// <summary>
+        /// Gets the email application encrypter secret key.
+        /// </summary>
         public static string EmailAppEncrypterSecretKey => $"{EmailApp}_Encrypter_Key";
+
+        /// <summary>
+        /// Gets the email application encrypter initialization vector.
+        /// </summary>
         public static string EmailAppEncrypterIV => $"{EmailApp}_Encrypter_IV";
 
+        /// <summary>
+        /// Gets the user login credential target.
+        /// </summary>
         public static readonly string UserLogin = $"{Sys.AppName}_USER_LOGIN_CREDENTIAL";
+
+        /// <summary>
+        /// Gets the user login encrypter secret key.
+        /// </summary>
         public static readonly string UserLoginEncrypterSecretKey = $"{UserLogin}_Encrypter_Key";
+
+        /// <summary>
+        /// Gets the user login encrypter initialization vector.
+        /// </summary>
         public static readonly string UserLoginEncrypterIV = $"{UserLogin}_Encrypter_IV";
     }
 
     /// <summary>
-    /// This class uses the Win32 API to store sensitive information in the Windows Credential Manager System. 
-    /// The information gets encapsulated in a <see cref="Credential"/> object which is stored in the local computer.
+    /// This class uses the Win32 API to store sensitive information in the Windows Credential Manager system. 
+    /// The information is encapsulated in a <see cref="Credential"/> object which is stored on the local computer.
     /// </summary>
     public static class CredentialManager
     {
@@ -62,74 +83,75 @@ namespace Backend.Utils
         private static extern void CredFree([In] IntPtr buffer);
 
         /// <summary>
-        /// Replace the stored credential with a new one.
+        /// Replaces the stored credential with a new one.
         /// </summary>
-        /// <param name="cred">A <see cref="Credential"/> object</param>
-        /// <returns>true if the credential was successfully replaced</returns>
-        public static bool Replace(Credential cred) 
+        /// <param name="cred">A <see cref="Credential"/> object.</param>
+        /// <returns>True if the credential was successfully replaced.</returns>
+        public static bool Replace(Credential cred)
         {
-            if (Exist(cred.Target)) 
+            if (Exist(cred.Target))
                 Delete(cred.Target);
             return Store(cred);
         }
 
         /// <summary>
-        /// Stores credential's information in the Windows Credential Manager System.
+        /// Stores credential information in the Windows Credential Manager system.
         /// </summary>
-        /// <param name="cred">A <see cref="Credential"/> object</param>
-        /// <returns>true if the credential was successfully stored</returns>
+        /// <param name="cred">A <see cref="Credential"/> object.</param>
+        /// <returns>True if the credential was successfully stored.</returns>
+        /// <exception cref="Exception">Thrown if the credential is already stored.</exception>
         public static bool Store(Credential cred)
         {
             if (Exist(cred.Target)) throw new Exception("This credential is already stored.");
-            byte[] byteArray = Encoding.Unicode.GetBytes(cred.Password); //Encode password.
+            byte[] byteArray = Encoding.Unicode.GetBytes(cred.Password); // Encode password.
 
-            CREDENTIAL credential = new() //create Credential Struct
+            CREDENTIAL credential = new() // Create Credential Struct
             {
                 TargetName = cred.Target,
                 UserName = cred.Username,
                 CredentialBlob = Marshal.StringToCoTaskMemUni(cred.Password),
                 CredentialBlobSize = (uint)byteArray.Length,
                 Type = CRED_TYPE_GENERIC,
-                Persist = 2  // STORE THE CREDENTIAL IN THE LOCL MACHINE
+                Persist = 2  // Store the credential in the local machine
             };
 
             bool result = CredWrite(ref credential, 0);
 
-            Marshal.FreeCoTaskMem(credential.CredentialBlob); //FREE MEMORY
+            Marshal.FreeCoTaskMem(credential.CredentialBlob); // Free memory
             return result;
         }
 
         /// <summary>
-        /// Check if the credential exists within the Windows Credential Manager System
+        /// Checks if the credential exists within the Windows Credential Manager system.
         /// </summary>
-        /// <param name="credential">A Credential object</param>
-        /// <returns>true if it exists</returns>
+        /// <param name="credential">A <see cref="Credential"/> object.</param>
+        /// <returns>True if it exists.</returns>
         public static bool Exist(Credential credential) => Exist(credential.Target);
 
         /// <summary>
-        /// Check if the credential exists within the Windows Credential Manager System
+        /// Checks if the credential exists within the Windows Credential Manager system.
         /// </summary>
-        /// <param name="target">Credential's Unique Identifier</param>
-        /// <returns>true if it exists</returns>
+        /// <param name="target">Credential's unique identifier.</param>
+        /// <returns>True if it exists.</returns>
         public static bool Exist(string target) => CredRead(target, CRED_TYPE_GENERIC, 0, out IntPtr credentialPtr);
 
         /// <summary>
-        /// Retrieve the credential stored in the Windows Credential Manager System.
+        /// Retrieves the credential stored in the Windows Credential Manager system.
         /// </summary>
-        /// <param name="target">a string that works as the credential unique identifier</param>
+        /// <param name="target">A string that works as the credential unique identifier.</param>
         /// <returns>A <see cref="Credential"/> object.</returns>
         public static Credential? Get(string target)
         {
             bool result = CredRead(target, CRED_TYPE_GENERIC, 0, out IntPtr credentialPtr);
             if (result)
             {
-                    object? pointer = Marshal.PtrToStructure(credentialPtr, typeof(CREDENTIAL));
-                    if (pointer == null) throw new Exception();
-                    CREDENTIAL credential = (CREDENTIAL)pointer;
-                    string password = Marshal.PtrToStringUni(credential.CredentialBlob, (int)(credential.CredentialBlobSize / 2));
-                    string username = credential.UserName;
-                    CredFree(credentialPtr);
-                    return new (target, username, password);
+                object? pointer = Marshal.PtrToStructure(credentialPtr, typeof(CREDENTIAL));
+                if (pointer == null) throw new Exception();
+                CREDENTIAL credential = (CREDENTIAL)pointer;
+                string password = Marshal.PtrToStringUni(credential.CredentialBlob, (int)(credential.CredentialBlobSize / 2));
+                string username = credential.UserName;
+                CredFree(credentialPtr);
+                return new Credential(target, username, password);
             }
             else
             {
@@ -138,43 +160,53 @@ namespace Backend.Utils
         }
 
         /// <summary>
-        /// Removes the credential stored in the Windows Credential Manager System.
+        /// Removes the credential stored in the Windows Credential Manager system.
         /// </summary>
-        /// <param name="target">a string that works as the credential unique identifier</param>
-        /// <returns>true if the credential was successfully removed</returns>
+        /// <param name="target">A string that works as the credential unique identifier.</param>
+        /// <returns>True if the credential was successfully removed.</returns>
         public static bool Delete(string target) => CredDelete(target, CRED_TYPE_GENERIC, 0);
     }
 
     /// <summary>
-    /// Instantiates an object holding Credential's information.
-    /// Credential objects are used in: <see cref="EmailSender"/>, <see cref="CurrentUser"/>
+    /// Instantiates an object holding credential information.
+    /// Credential objects are used in: <see cref="EmailSender"/>, <see cref="CurrentUser"/>.
     /// </summary>
-    /// <param name="target">The Credential Unique Identifier</param>
-    /// <param name="username">The Name of the information to store.</param>
-    /// <param name="password">The actual sensitive information to store.</param>
-    public class Credential(string target, string username, string password) 
+    public class Credential
     {
         /// <summary>
-        /// Unique Identifier
+        /// Initializes a new instance of the <see cref="Credential"/> class.
         /// </summary>
-        public string Target { get; private set; } = target;
+        /// <param name="target">The credential unique identifier.</param>
+        /// <param name="username">The name of the information to store.</param>
+        /// <param name="password">The actual sensitive information to store.</param>
+        public Credential(string target, string username, string password)
+        {
+            Target = target;
+            Username = username;
+            Password = password;
+        }
 
         /// <summary>
-        /// Name of the information to store.
+        /// Gets the unique identifier.
         /// </summary>
-        public string Username { get; private set; } = username;
+        public string Target { get; private set; }
 
         /// <summary>
-        /// The actual sensitive information to store.
+        /// Gets the name of the information to store.
         /// </summary>
-        public string Password { get; private set; } = password;
+        public string Username { get; private set; }
+
+        /// <summary>
+        /// Gets the actual sensitive information to store.
+        /// </summary>
+        public string Password { get; private set; }
 
         public override bool Equals(object? obj)
         {
-            return obj is Credential credential &&
-                   Target == credential.Target;
+            return obj is Credential credential && Target == credential.Target;
         }
 
         public override int GetHashCode() => HashCode.Combine(Target);
     }
+
 }

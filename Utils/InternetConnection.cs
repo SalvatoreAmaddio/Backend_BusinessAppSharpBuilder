@@ -4,13 +4,16 @@ using System.Runtime.InteropServices;
 namespace Backend.Utils
 {
     /// <summary>
-    /// This class follows the Singleton pattern. 
-    /// It helps check if the computer is connected to the Internet or not.
-    /// This class uses Windows Internet API. (WinINet)
+    /// This class follows the Singleton pattern and helps check if the computer is connected to the Internet.
+    /// It uses the Windows Internet API (WinINet).
     /// </summary>
     public sealed partial class InternetConnection
     {
         private static readonly Lazy<InternetConnection> lazyInstance = new(() => new InternetConnection());
+
+        /// <summary>
+        /// Gets the singleton instance of the <see cref="InternetConnection"/> class.
+        /// </summary>
         public static InternetConnection Event => lazyInstance.Value;
 
         [LibraryImport("wininet.dll")]
@@ -18,40 +21,45 @@ namespace Backend.Utils
         private static partial bool InternetGetConnectedState(out int description, int reservedValue);
 
         /// <summary>
-        /// Gets or Sets if this class should be checking for Iternet Connection or not.
+        /// Gets or sets a value indicating whether this class should check for Internet connection.
         /// </summary>
         public static bool On { get; set; } = false;
 
         /// <summary>
-        /// Occurs when the Internet Connection status has changed.
+        /// Occurs when the Internet connection status has changed.
         /// </summary>
         public event InternetConnectionStatusHandler? InternetStatusChanged;
 
         /// <summary>
-        /// This method check if the machine is connected to the Internet.
+        /// Checks if the machine is connected to the Internet.
         /// </summary>
         /// <returns>
-        /// true if the machine is connected to the internet <para/>
-        /// <c>IMPORTANT:</c> Returns always true if <see cref="On"/> is set to false.
+        /// <c>true</c> if the machine is connected to the Internet; otherwise, <c>false</c>.
+        /// <para>
+        /// <c>IMPORTANT:</c> Always returns <c>true</c> if <see cref="On"/> is set to <c>false</c>.
+        /// </para>
         /// </returns>
         public static bool IsConnected() => !On ? true : InternetGetConnectedState(out _, 0);
 
         /// <summary>
-        /// This method check if the machine is connected to the Internet.
+        /// Asynchronously checks if the machine is connected to the Internet.
         /// </summary>
         /// <returns>
-        /// A Task&lt;bool> <para/>
-        /// <c>IMPORTANT:</c> Returns always Task&lt;true> if <see cref="On"/> is set to false.
+        /// A task that represents the asynchronous operation. The task result is <c>true</c> if the machine is connected to the Internet; otherwise, <c>false</c>.
+        /// <para>
+        /// <c>IMPORTANT:</c> Always returns <c>true</c> if <see cref="On"/> is set to <c>false</c>.
+        /// </para>
         /// </returns>
         public static Task<bool> IsConnectedAsync() => Task.FromResult(IsConnected());
 
         /// <summary>
-        /// This method perform an infinite loop that checks if the Internet Connection has changed.
-        /// If a change occured, it triggers the <see cref="InternetStatusChanged"/> event.
-        /// <para/>
-        /// <c>IMPORTANT:</c> this method does not run if <see cref="On"/> is set to false.
+        /// Performs an infinite loop that checks if the Internet connection has changed.
+        /// If a change occurs, it triggers the <see cref="InternetStatusChanged"/> event.
+        /// <para>
+        /// <c>IMPORTANT:</c> This method does not run if <see cref="On"/> is set to <c>false</c>.
+        /// </para>
         /// </summary>
-        /// <returns>A Task</returns>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public async static Task CheckingInternetConnection()
         {
             if (!On) return;
@@ -70,4 +78,5 @@ namespace Backend.Utils
             }
         }
     }
+
 }

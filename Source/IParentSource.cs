@@ -5,48 +5,49 @@ namespace Backend.Source
 {
     /// <summary>
     /// <c>Observer Pattern:</c> This interface defines the methods that a <see cref="DataSource"/> must 
-    /// implement to act as Parent Source to notify Children sources.
-    /// see also <seealso cref="IChildSource"/>
+    /// implement to act as a parent source to notify child sources.
+    /// See also <seealso cref="IChildSource"/>.
     /// </summary>
     public interface IParentSource
     {
         /// <summary>
-        /// Add a child source to the Parent Source
+        /// Adds a child source to the parent source.
         /// </summary>
-        /// <param name="child">A object implementing IChildSource</param>
-        public void AddChild(IChildSource child);
+        /// <param name="child">An object implementing <see cref="IChildSource"/>.</param>
+        void AddChild(IChildSource child);
 
         /// <summary>
-        /// Remove a child source from the Parent Source
+        /// Removes a child source from the parent source.
         /// </summary>
-        /// <param name="child">A object implementing IChildSource</param>
-        public void RemoveChild(IChildSource child);
+        /// <param name="child">An object implementing <see cref="IChildSource"/>.</param>
+        void RemoveChild(IChildSource child);
 
         /// <summary>
-        /// Notifies the children of changes they must observe. 
+        /// Notifies the child sources of changes they must observe.
         /// </summary>
-        /// <param name="crud">A <see cref="CRUD"/> Enum</param>
-        /// <param name="model">The Record that has changed.</param>
-        public void NotifyChildren(CRUD crud, ISQLModel model);
+        /// <param name="crud">A <see cref="CRUD"/> enumeration value indicating the type of operation.</param>
+        /// <param name="model">The record that has changed.</param>
+        void NotifyChildren(CRUD crud, ISQLModel model);
     }
 
     /// <summary>
     /// <c>Observer Pattern:</c> This interface defines the methods that a <see cref="DataSource"/> must 
-    /// implement to act as Child Source to receive messages from their Parent Source.
-    /// see also <seealso cref="IParentSource"/>
+    /// implement to act as a child source to receive messages from their parent source.
+    /// See also <seealso cref="IParentSource"/>.
     /// </summary>
-    public interface IChildSource 
+    public interface IChildSource
     {
         /// <summary>
-        /// Gets and sets a reference to the ParentSource object.
+        /// Gets or sets a reference to the parent source object.
         /// </summary>
-        public IParentSource? ParentSource { get; set; }
+        IParentSource? ParentSource { get; set; }
 
         /// <summary>
-        /// Defines the logic for implementing record updates comunicated by the Parent Source. 
+        /// Defines the logic for implementing record updates communicated by the parent source.
         /// </summary>
-        /// <param name="crud">A <see cref="CRUD"/> Enum</param>
-        /// <param name="model">The Record that has changed.</param>
-        public void Update(CRUD crud, ISQLModel model);
+        /// <param name="crud">A <see cref="CRUD"/> enumeration value indicating the type of operation.</param>
+        /// <param name="model">The record that has changed.</param>
+        void Update(CRUD crud, ISQLModel model);
     }
+
 }

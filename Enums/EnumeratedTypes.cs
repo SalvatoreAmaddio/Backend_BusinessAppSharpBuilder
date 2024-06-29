@@ -1,11 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Backend.Enums
+﻿namespace Backend.Enums
 {
+    public enum RecordMovement
+    {
+        GoFirst = 1,
+        GoLast = 2,
+        GoNext = 3,
+        GoPrevious = 4,
+        GoNew = 5,
+        GoAt = 6,
+    }
+
     /// <summary>
     /// FieldType Enum
     /// </summary>
@@ -24,4 +28,15 @@ namespace Backend.Enums
         DELETE = 2,
     }
 
+    public enum XlAlign
+    {
+        Center = -4108,
+        CenterAcrossSelection = 7,
+        Distributed = -4117,
+        Fill = 5,
+        General = 1,
+        Justify = -4130,
+        Left = -4131,
+        Right = -4152
+    }
 }

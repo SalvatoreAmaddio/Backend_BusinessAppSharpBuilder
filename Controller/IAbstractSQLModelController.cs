@@ -1,114 +1,143 @@
 ﻿using Backend.Database;
+using Backend.Events;
 using Backend.Model;
 using Backend.Source;
 
 namespace Backend.Controller
 {
+    /// <summary>
+    /// Defines the contract for a SQL model controller that handles CRUD operations,
+    /// navigation, and record management within a data source. This interface provides
+    /// methods for interacting with records, navigating through them, and performing
+    /// database operations such as insert, update, and delete. It also includes properties
+    /// for accessing the database and data source, as well as events for record navigation.
+    /// </summary>
     public interface IAbstractSQLModelController : IDisposable
     {
         /// <summary>
-        /// Gets a string representing the Record position to be displayed
+        /// Gets a string representing the record position to be displayed.
         /// </summary>
-        public string Records { get; }
+        string Records { get; }
 
         /// <summary>
-        /// An instance of a <see cref="IAbstractDatabase"/>.
+        /// Gets a reference to an <see cref="IAbstractDatabase"/>.
         /// </summary>
-        /// <value>An object representing a Database that extends <see cref="AbstractDatabase"/></value>
-        public IAbstractDatabase Db { get; }
+        IAbstractDatabase Db { get; }
 
         /// <summary>
-        /// The current selected record.
+        /// Gets a reference to an <see cref="IDataSource"/> object that holds a collection of records.
         /// </summary>
-        /// <value>An object that implements <see cref="ISQLModel"/> or extends <see cref="AbstractSQLModel"/>, which represents the current selected record</value>
-        //public ISQLModel? CurrentModel { get; set; }
-
-        public void SetCurrentRecord(ISQLModel? model);
-        public ISQLModel? GetCurrentRecord();
+        IDataSource Source { get; }
 
         /// <summary>
-        /// A recordsource object that old the collection of records.
+        /// Indicates whether the <see cref="IAbstractSQLModelController"/> has reached the end of the <see cref="Source"/>.
         /// </summary>
-        /// <value>A RecordSource</value>
-        public IDataSource Source { get; }
-
-        public bool EOF { get; }
-        /// <summary>
-        /// Gets and Sets whether or no a new Record can be added. Default value is true.
-        /// </summary>
-        /// <value>True if the <see cref="Navigator"/> can add new records.</value>
-        public bool AllowNewRecord { get; set; }
+        bool EOF { get; }
 
         /// <summary>
-        /// It tells the RecordSource's Enumerator to go to the next available record.
-        /// see <see cref="DataSource"/>
+        /// Gets or sets a value indicating whether a new record can be added. Default value is true.
         /// </summary>
-        public bool GoNext();
+        /// <value>True if the controller allows new records to be inserted in the <see cref="Source"/>; otherwise, false.</value>
+        bool AllowNewRecord { get; set; }
 
         /// <summary>
-        /// It tells the RecordSource's Enumerator to go to the previous available record.
-        /// see <see cref="DataSource"/>
+        /// Sets the currently selected record in the <see cref="IAbstractSQLModelController"/>.
         /// </summary>
-        public bool GoPrevious();
+        /// <param name="model">The record to set as the current record.</param>
+        void SetCurrentRecord(ISQLModel? model);
 
         /// <summary>
-        /// It tells the RecordSource's Enumerator to go to the last record.
-        /// see <see cref="DataSource"/>
+        /// Gets the currently selected record in the <see cref="IAbstractSQLModelController"/>.
         /// </summary>
-        public bool GoLast();
+        /// <returns>The current record as an <see cref="ISQLModel"/>.</returns>
+        ISQLModel? GetCurrentRecord();
 
         /// <summary>
-        /// It tells the RecordSource's Enumerator to go to the first record.
-        /// see <see cref="DataSource"/>
+        /// Moves to the next available record in the <see cref="Source"/>.
         /// </summary>
-        public bool GoFirst();
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
+        bool GoNext();
 
         /// <summary>
-        /// It tells the RecordSource's Enumerator to go to a given record based on its zero-based position.
-        /// see <see cref="DataSource"/>
+        /// Moves to the previous available record in the <see cref="Source"/>.
         /// </summary>
-        /// <param name="index">the zero-based index of the Record to go to.</param>
-        public bool GoAt(int index);
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
+        bool GoPrevious();
 
         /// <summary>
-        /// It finds the given record and tells the RecordSource's Enumerator to go to its zero-based position.
-        /// see <see cref="DataSource"/>
+        /// Moves to the last record in the <see cref="Source"/>.
         /// </summary>
-        /// <param name="record">the record to move to.</param>
-        public bool GoAt(ISQLModel? record);
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
+        bool GoLast();
 
         /// <summary>
-        /// It tells the RecordSource's Enumerator that a new record will be added.
-        /// see <see cref="DataSource"/>
+        /// Moves to the first record in the <see cref="Source"/>.
         /// </summary>
-        public bool GoNew();
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
+        bool GoFirst();
 
         /// <summary>
-        /// It performs a Insert or Update Statement based on the <see cref="CurrentModel"/>'s <see cref="INotifier.IsDirty"/> property and the <see cref="ISQLModel.IsNewRecord"/> method.
+        /// Moves to a given record based on its zero-based position.
+        /// </summary>
+        /// <param name="index">The zero-based index of the record to move to.</param>
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
+        bool GoAt(int index);
+
+        /// <summary>
+        /// Finds the given record and moves to its zero-based position in the <see cref="Source"/>.
+        /// </summary>
+        /// <param name="record">The record to move to.</param>
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
+        bool GoAt(ISQLModel? record);
+
+        /// <summary>
+        /// Prepares the <see cref="Source"/> for adding a new record.
+        /// </summary>
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
+        bool GoNew();
+
+        /// <summary>
+        /// Performs an insert or update statement based on the <see cref="ISQLModel.IsNewRecord"/> method.
         /// <list type="bullet">
         /// <item>
-        /// <term>update</term>
-        /// <description> (IsDirty = True) AND (IsNewRecord() = False)</description>
+        /// <term>Update</term>
+        /// <description> <c>IsNewRecord() = False</c></description>
         /// </item>
         /// <item>
-        /// <term>insert</term>
-        /// <description> (IsDirty = True) AND (IsNewRecord() = True)</description>
+        /// <term>Insert</term>
+        /// <description> <c>IsNewRecord() = True</c></description>
         /// </item>
         /// </list>
         /// </summary>
-        /// <returns>true if the record was successfully altered.</returns>
+        /// <param name="sql">An optional SQL statement to execute.</param>
+        /// <param name="parameters">Optional query parameters to include in the operation.</param>
+        /// <returns>True if the record was successfully altered; otherwise, false.</returns>
         /// <exception cref="NoModelException">Thrown if the <see cref="Model"/> is null.</exception>
-        public bool AlterRecord(string? sql = null, List<QueryParameter>? parameters = null);
+        bool AlterRecord(string? sql = null, List<QueryParameter>? parameters = null);
 
         /// <summary>
-        /// It deletes the <see cref="CurrentModel"/> from the database.
+        /// Deletes the current record from the database.
         /// </summary>
+        /// <param name="sql">An optional SQL statement to execute.</param>
+        /// <param name="parameters">Optional query parameters to include in the operation.</param>
         /// <exception cref="NoModelException">Thrown if the <see cref="Model"/> is null.</exception>
-        public void DeleteRecord(string? sql = null, List<QueryParameter>? parameters = null);
+        void DeleteRecord(string? sql = null, List<QueryParameter>? parameters = null);
 
         /// <summary>
-        /// Returns the <see cref="Source"/> Property as a <see cref="ICollection{ISQLModel}"/>
+        /// Returns the <see cref="Source"/> property as an <see cref="ICollection{ISQLModel}"/>.
         /// </summary>
-        public ICollection<ISQLModel>? SourceAsCollection();
+        /// <returns>The source as a collection of <see cref="ISQLModel"/>.</returns>
+        ICollection<ISQLModel>? SourceAsCollection();
+
+        /// <summary>
+        /// Occurs after record navigation.
+        /// </summary>
+        event AfterRecordNavigationEventHandler? AfterRecordNavigation;
+
+        /// <summary>
+        /// Occurs before record navigation.
+        /// </summary>
+        event BeforeRecordNavigationEventHandler? BeforeRecordNavigation;
     }
+
 }

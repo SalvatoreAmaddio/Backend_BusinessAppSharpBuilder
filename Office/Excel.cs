@@ -6,26 +6,26 @@ using Backend.Exceptions;
 namespace Backend.Office
 {
     /// <summary>
-    /// This class allows to easily access and manage the COM object for dealing with Excel Files.
+    /// Provides methods to easily access and manage Excel files using COM objects.
     /// </summary>
     public class Excel : IDestroyable
     {
         Application? xlApp;
 
         /// <summary>
-        /// Gets the Excel's Workbook.
+        /// Gets the Excel workbook.
         /// </summary>
         public Workbook? WorkBook { get; private set; }
 
         /// <summary>
-        /// Get's the current active Worksheet.
+        /// Gets the current active worksheet.
         /// </summary>
         public Worksheet? Worksheet { get => WorkBook?.ActiveWorksheet; }
-       
+
         /// <summary>
-        /// Create a new Excel File.
+        /// Creates a new Excel file.
         /// </summary>
-        /// <exception cref="MissingExcelException"></exception>
+        /// <exception cref="MissingExcelException">Thrown when Excel is not installed on the system.</exception>       
         public void Create() 
         {
             xlApp = new XL.Application();
@@ -34,10 +34,10 @@ namespace Backend.Office
         }
 
         /// <summary>
-        /// Read an existing excel file.
+        /// Reads an existing Excel file.
         /// </summary>
-        /// <param name="path"></param>
-        /// <exception cref="MissingExcelException"></exception>
+        /// <param name="path">The path to the Excel file.</param>
+        /// <exception cref="MissingExcelException">Thrown when Excel is not installed on the system.</exception>
         public void Read(string path) 
         {
             xlApp = new XL.Application();
@@ -46,8 +46,8 @@ namespace Backend.Office
         }
 
         /// <summary>
-        /// This method calls <see cref="Workbook.Close"/>. Since it can throw a <see cref="WorkbookException"/>, wrap this method in a try-catch-finally block.
-        /// For Example:
+        /// Saves the current workbook to the specified file path.
+        /// How to use:
         /// <code>
         /// try 
         /// {
@@ -63,11 +63,14 @@ namespace Backend.Office
         /// }
         /// </code>
         /// </summary>
-        /// <param name="filePath"></param>
+        /// <remarks>
+        /// This method calls <see cref="Workbook.Close"/>. Since it can throw a <see cref="WorkbookException"/>, wrap this method in a try-catch-finally block.
+        /// </remarks>
+        /// <param name="filePath">The path where the Excel file will be saved.</param>
         public void Save(string filePath) => WorkBook?.Save(filePath);
 
         /// <summary>
-        /// Close the Excel file and performs clean-up operations.
+        /// Closes the Excel application and performs clean-up operations.
         /// </summary>
         public void Close() 
         {
@@ -79,10 +82,14 @@ namespace Backend.Office
             GC.WaitForPendingFinalizers();
         }
 
+        /// <summary>
+        /// Releases COM objects and performs additional clean-up operations.
+        /// </summary>
         public void Destroy() 
         {
             if (xlApp == null) return;
             Marshal.ReleaseComObject(xlApp);
+            xlApp = null;
         }
 
     }

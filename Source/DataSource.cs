@@ -8,59 +8,66 @@ using Backend.Enums;
 namespace Backend.Source
 {
     /// <summary>
-    /// This class extends the <see cref="Collection{T}"/> and deals with IEnumerable&lt;<see cref="ISQLModel"/>&gt;. As Enumerator it uses a <see cref="INavigator"/>.
-    /// see also the <seealso cref="Navigator{T}"/> class.
+    /// This class extends the <see cref="Collection{T}"/> and deals with <see cref="IEnumerable{T}"/> of <see cref="ISQLModel"/>. 
+    /// As enumerator, it uses a <see cref="Navigator{T}"/>.
+    /// See also the <seealso cref="Navigator{T}"/> class.
     /// </summary>
     public class DataSource<M> : Collection<M>, IDataSource<M>, IChildSource where M : ISQLModel, new()
     {
-
         private Navigator<M>? _navigator;
+
+        /// <summary>
+        /// Gets or sets the parent source of this data source.
+        /// </summary>
         public IParentSource? ParentSource { get; set; }
+
+        /// <summary>
+        /// Gets or sets the controller to which this data source is associated.
+        /// </summary>
         public IAbstractSQLModelController? Controller { get; set; }
 
         #region Constructor
+
         /// <summary>
-        /// Parameterless Constructor to instantiate a RecordSource object.
+        /// Parameterless constructor to instantiate a DataSource object.
         /// </summary>
         public DataSource() { }
 
         /// <summary>
-        /// It instantiates a RecordSource object filled with the given IEnumerable&lt;<see cref="ISQLModel"/>&gt;.
+        /// Instantiates a DataSource object filled with the given <see cref="IList{T}"/> of <see cref="ISQLModel"/>.
         /// </summary>
-        /// <param name="source">An IEnumerable&lt;<see cref="ISQLModel"/>&gt;</param>
-        public DataSource(IList<M> source) : base(source)
-        {
-        }
+        /// <param name="source">An <see cref="IList{T}"/> of <see cref="ISQLModel"/>.</param>
+        public DataSource(IList<M> source) : base(source) { }
 
         /// <summary>
-        /// It instantiates a RecordSource object filled with the given IEnumerable&lt;<see cref="ISQLModel"/>&gt;.
+        /// Instantiates a DataSource object filled with the given <see cref="IEnumerable{T}"/> of <see cref="ISQLModel"/>.
         /// </summary>
-        /// <param name="source">An IEnumerable&lt;<see cref="ISQLModel"/>&gt;</param>
-        public DataSource(IEnumerable<M> source) : base(source.ToList())
-        {
-        }
+        /// <param name="source">An <see cref="IEnumerable{T}"/> of <see cref="ISQLModel"/>.</param>
+        public DataSource(IEnumerable<M> source) : base(source.ToList()) { }
 
         /// <summary>
-        /// It instantiates a RecordSource object filled with the given <see cref="IAbstractDatabase.MasterSource"/> IEnumerable.
-        /// This constructor will consider this RecordSource object as a child of the <see cref="IAbstractDatabase.MasterSource"/>
+        /// Instantiates a DataSource object filled with the given <see cref="IAbstractDatabase.MasterSource"/> <see cref="IEnumerable"/>.
+        /// This constructor considers this DataSource object as a child of the <see cref="IAbstractDatabase.MasterSource"/>.
         /// </summary>
-        /// <param name="db">An instance of <see cref="IAbstractDatabase"/></param>
+        /// <param name="db">An instance of <see cref="IAbstractDatabase"/>.</param>
         public DataSource(IAbstractDatabase db) : this(db.MasterSource.Cast<M>()) => db.MasterSource.AddChild(this);
 
         /// <summary>
-        /// It instantiates a RecordSource object filled with the given <see cref="IAbstractDatabase.MasterSource"/> IEnumerable.
-        /// This constructor will consider this RecordSource object as a child of the <see cref="IAbstractDatabase.MasterSource"/>
+        /// Instantiates a DataSource object filled with the given <see cref="IAbstractDatabase.MasterSource"/> <see cref="IEnumerable"/>.
+        /// This constructor considers this DataSource object as a child of the <see cref="IAbstractDatabase.MasterSource"/>.
         /// </summary>
-        /// <param name="db">An instance of <see cref="IAbstractDatabase"/></param>
-        /// <param name="controller">An instance of <see cref="IAbstractSQLModelController"/></param>
+        /// <param name="db">An instance of <see cref="IAbstractDatabase"/>.</param>
+        /// <param name="controller">An instance of <see cref="IAbstractSQLModelController"/>.</param>
         public DataSource(IAbstractDatabase db, IAbstractSQLModelController controller) : this(db) => Controller = controller;
+
         #endregion
 
         #region Enumerator
+
         /// <summary>
-        /// Override the default <c>GetEnumerator()</c> method to replace it with a <see cref="ISourceNavigator"></see> object./>
+        /// Overrides the default <c>GetEnumerator()</c> method to replace it with a <see cref="Navigator{T}"/> object.
         /// </summary>
-        /// <returns>An Enumerator object.</returns>
+        /// <returns>An enumerator object.</returns>
         public new IEnumerator<M> GetEnumerator()
         {
             if (_navigator != null)
@@ -72,9 +79,19 @@ namespace Backend.Source
             return _navigator;
         }
 
+        /// <summary>
+        /// Returns the enumerator as an <see cref="INavigator{T}"/> object.
+        /// </summary>
+        /// <returns>An <see cref="INavigator{T}"/> object that allows navigation through the data source.</returns>
         public INavigator<M> Navigate() => (INavigator<M>)GetEnumerator();
+
         #endregion
 
+        /// <summary>
+        /// Updates the data source based on the specified CRUD operation and model.
+        /// </summary>
+        /// <param name="crud">The CRUD operation to perform.</param>
+        /// <param name="model">The model to be used for the operation.</param>
         public virtual void Update(CRUD crud, ISQLModel model)
         {
             switch (crud)
@@ -88,7 +105,7 @@ namespace Backend.Source
                 case CRUD.DELETE:
                     bool removed = Remove((M)model);
                     if (!removed) break;
-                    if (_navigator != null) 
+                    if (_navigator != null)
                     {
                         if (_navigator.BOF && !_navigator.NoRecords) Controller?.GoFirst();
                         else Controller?.GoPrevious();
@@ -98,13 +115,18 @@ namespace Backend.Source
         }
 
         /// <summary>
-        /// It takes an IAsyncEnumerable, converts it to a List and returns a RecordSource object.
+        /// Takes an <see cref="IAsyncEnumerable{T}"/>, converts it to a list, and returns a DataSource object.
         /// </summary>
-        /// <param name="source"> An IAsyncEnumerable&lt;ISQLModel></param>
-        /// <returns>Task&lt;RecordSource></returns>
+        /// <param name="source">An <see cref="IAsyncEnumerable{T}"/>.</param>
+        /// <returns>A task representing the asynchronous operation, with a DataSource object as the result.</returns>
         public static async Task<DataSource<M>> CreateFromAsyncList(IAsyncEnumerable<M> source) =>
-        new DataSource<M>(await source.ToListAsync());
+            new DataSource<M>(await source.ToListAsync());
 
+        /// <summary>
+        /// Returns a string that represents the position of the records within the data source.
+        /// </summary>
+        /// <returns>A string representing the record position.</returns>
+        /// <exception cref="NoNavigatorException">Thrown when the navigator is null.</exception>
         public virtual string RecordPositionDisplayer()
         {
             if (_navigator == null) throw new NoNavigatorException();
@@ -116,6 +138,9 @@ namespace Backend.Source
             };
         }
 
+        /// <summary>
+        /// Disposes of the resources used by the data source.
+        /// </summary>
         public void Dispose()
         {
             ParentSource?.RemoveChild(this);
@@ -125,9 +150,13 @@ namespace Backend.Source
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Finalizer to ensure resources are released.
+        /// </summary>
         ~DataSource()
         {
             Dispose();
         }
     }
+
 }

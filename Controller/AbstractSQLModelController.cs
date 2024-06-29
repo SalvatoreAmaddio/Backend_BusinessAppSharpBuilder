@@ -7,6 +7,12 @@ using Backend.Events;
 
 namespace Backend.Controller
 {
+    /// <summary>
+    /// Provides an abstract implementation of the <see cref="IAbstractSQLModelController"/> interface, 
+    /// handling CRUD operations, record navigation, and event management for SQL models. 
+    /// This class serves as a base for controllers that manage SQL-based data sources.
+    /// </summary>
+    /// <typeparam name="M">The type of the SQL model, which must implement <see cref="ISQLModel"/> and have a parameterless constructor.</typeparam>
     public abstract class AbstractSQLModelController<M> : IAbstractSQLModelController where M : ISQLModel, new()
     {
         #region Variables
@@ -14,26 +20,41 @@ namespace Backend.Controller
         #endregion
 
         #region Properties
-        public IAbstractDatabase Db { get; protected set; } = null!;        
+        public IAbstractDatabase Db { get; protected set; } = null!;
         public IDataSource Source => DataSource;
+        public virtual string Records { get; protected set; } = string.Empty;
+        public bool EOF => Navigator.EOF;
+
+        /// <summary>
+        /// Gets the <see cref="Source"/> property as a <see cref="IDataSource{M}"/> object.
+        /// </summary>
         public IDataSource<M> DataSource { get; protected set; }
+
+        /// <summary>
+        /// Gets a reference to the <see cref="DataSource"/>'s <see cref="Navigator"/> object.
+        /// </summary>
         protected INavigator<M> Navigator => DataSource.Navigate();
+
+        /// <summary>
+        /// Gets or sets a value indicating whether a new record can be added. Default value is true.
+        /// This property also sets the <see cref="Navigator.AllowNewRecord"/> property.
+        /// </summary>
+        /// <value>true if the <see cref="Navigator"/> can add new records; otherwise, false.</value>
         public virtual bool AllowNewRecord
         {
             get => _allowNewRecord;
-            set 
+            set
             {
                 _allowNewRecord = value;
                 Navigator.AllowNewRecord = value;
-            } 
+            }
         }
-        public virtual M? CurrentRecord { get; set; }
-        public virtual string Records { get; protected set; } = string.Empty;
-        public bool EOF => Navigator.EOF;
-        #endregion
 
-        public void SetCurrentRecord(ISQLModel? model) => CurrentRecord = (M?)model;
-        public ISQLModel? GetCurrentRecord() => CurrentRecord;
+        /// <summary>
+        /// Gets or sets the record on which the <see cref="Navigator"/> is currently pointing.
+        /// </summary>
+        public virtual M? CurrentRecord { get; set; }
+        #endregion
 
         #region Events
         public event AfterRecordNavigationEventHandler? AfterRecordNavigation;
@@ -47,28 +68,38 @@ namespace Backend.Controller
             GoFirst();
         }
 
+        #region DataSource
         /// <summary>
-        /// Override this method to set the <see cref="DataSource"/> property on Object's Init
+        /// Initializes the <see cref="IDataSource{M}"/> property. This method is called in the constructor.
+        /// Override this method to set a custom data source.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A <see cref="IDataSource{M}"/> object.</returns>
         protected virtual IDataSource<M> InitSource() => new DataSource<M>(Db, this);
+
         public ICollection<ISQLModel>? SourceAsCollection()
         {
             try
             {
                 return (ICollection<ISQLModel>)Source;
             }
-            catch 
+            catch
             {
                 return null;
             }
         }
+        #endregion
+
+        #region Current Record
+        public void SetCurrentRecord(ISQLModel? model) => CurrentRecord = (M?)model;
+        public ISQLModel? GetCurrentRecord() => CurrentRecord;
+        #endregion
 
         #region GoTo
         /// <summary>
-        /// It checks if the <see cref="CurrentRecord"/>'s property meets the conditions to be updated. This method is called whenever the <see cref="Navigator"/> moves.
+        /// Checks if the <see cref="CurrentRecord"/> meets the conditions to be updated.
+        /// This method is called whenever the <see cref="Navigator"/> moves.
         /// </summary>
-        /// <returns>true if the Navigator can move.</returns>
+        /// <returns>True if the Navigator can move; otherwise, false.</returns>
         protected virtual bool CanMove()
         {
             if (CurrentRecord != null)
@@ -111,12 +142,12 @@ namespace Backend.Controller
             bool moved = Navigator.GoPrevious();
             if (!moved) return false;
 
-            try 
+            try
             {
                 CurrentRecord = Navigator.Current;
             }
-            catch 
-            { 
+            catch
+            {
                 return false;
             }
 
@@ -194,7 +225,7 @@ namespace Backend.Controller
             if (InvokeAfterRecordNavigationEvent(RecordMovement.GoNew)) return false; //Event was cancelled
 
             Records = Source.RecordPositionDisplayer();
-            return moved;   
+            return moved;
         }
 
         public virtual bool GoAt(int index)
@@ -216,7 +247,7 @@ namespace Backend.Controller
         public virtual bool GoAt(ISQLModel? record)
         {
             if (!CanMove()) return false;
-            if (record == null) 
+            if (record == null)
             {
                 CurrentRecord = default;
                 Records = Source.RecordPositionDisplayer();
@@ -240,6 +271,18 @@ namespace Backend.Controller
         #endregion
 
         #region CRUD Operations
+        public virtual bool AlterRecord(string? sql = null, List<QueryParameter>? parameters = null)
+        {
+            if (CurrentRecord == null) throw new NoModelException();
+            if (!CurrentRecord.AllowUpdate()) return false; //cannot update.
+            Db.Model = CurrentRecord;
+            CRUD crud = (!Db.Model.IsNewRecord()) ? CRUD.UPDATE : CRUD.INSERT;
+            Db.Crud(crud, sql, parameters);
+            Db.MasterSource?.NotifyChildren(crud, Db.Model);
+            GoAt(CurrentRecord);
+            return true;
+        }
+
         public void DeleteRecord(string? sql = null, List<QueryParameter>? parameters = null)
         {
             if (CurrentRecord == null) throw new NoModelException();
@@ -257,8 +300,11 @@ namespace Backend.Controller
                 Db?.MasterSource?.NotifyChildren(CRUD.DELETE, Db.Model); //notify children sources that the master source has changed.
         }
 
-        protected abstract void OnUIApplication(EntityTree tree, ISQLModel record);
-
+        /// <summary>
+        /// Deletes all records associated by foreign key constraints to the deleted record.
+        /// This method is called inside <see cref="DeleteRecord(string?, List{QueryParameter}?)"/>.
+        /// </summary>
+        /// <param name="model">The model representing the record to delete.</param>
         private async void DeleteOrphan(ISQLModel? model)
         {
             if (model == null) return;
@@ -287,20 +333,21 @@ namespace Backend.Controller
                 });
             });
         }
-        public virtual bool AlterRecord(string? sql = null, List<QueryParameter>? parameters = null)
-        {
-            if (CurrentRecord == null) throw new NoModelException();
-            if (!CurrentRecord.AllowUpdate()) return false; //cannot update.
-            Db.Model = CurrentRecord;
-            CRUD crud = (!Db.Model.IsNewRecord()) ? CRUD.UPDATE : CRUD.INSERT;
-            Db.Crud(crud, sql, parameters);
-            Db.MasterSource?.NotifyChildren(crud, Db.Model);
-            GoAt(CurrentRecord);
-            return true;
-        }
+
+        /// <summary>
+        /// Handles operations performed in the <see cref="DeleteOrphan(ISQLModel?)"/> method on the UI thread.
+        /// </summary>
+        /// <param name="tree">The entity tree.</param>
+        /// <param name="record">The record being processed.</param>
+        protected abstract void OnUIApplication(EntityTree tree, ISQLModel record);
         #endregion
 
         #region Event Invokers
+        /// <summary>
+        /// Invokes the <see cref="AfterRecordNavigation"/> event.
+        /// </summary>
+        /// <param name="recordMovement">The type of record movement.</param>
+        /// <returns>True if the event was cancelled; otherwise, false.</returns>
         protected bool InvokeAfterRecordNavigationEvent(RecordMovement recordMovement)
         {
             AllowRecordMovementArgs args = new(recordMovement);
@@ -308,6 +355,11 @@ namespace Backend.Controller
             return args.Cancel; // if returns true, the event is cancelled
         }
 
+        /// <summary>
+        /// Invokes the <see cref="BeforeRecordNavigation"/> event.
+        /// </summary>
+        /// <param name="recordMovement">The type of record movement.</param>
+        /// <returns>True if the event was cancelled; otherwise, false.</returns>
         protected bool InvokeBeforeRecordNavigationEvent(RecordMovement recordMovement)
         {
             AllowRecordMovementArgs args = new(recordMovement);
@@ -317,7 +369,11 @@ namespace Backend.Controller
         #endregion
 
         #region Disposer
-        protected virtual void DisposeEvents() 
+        /// <summary>
+        /// Unsubscribes the controller from events. Override this method to add additional disposal logic.
+        /// This method is called in <see cref="Dispose"/>.
+        /// </summary>
+        protected virtual void DisposeEvents()
         {
             AfterRecordNavigation = null;
             BeforeRecordNavigation = null;
@@ -330,6 +386,6 @@ namespace Backend.Controller
             GC.SuppressFinalize(this);
         }
         #endregion
-
     }
+
 }

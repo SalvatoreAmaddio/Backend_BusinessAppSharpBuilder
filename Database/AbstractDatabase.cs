@@ -8,8 +8,9 @@ using System.Data.Common;
 namespace Backend.Database
 {
     /// <summary>
-    /// AbstractClass that defines the structure that any Database Class should use. This class implements <see cref="IAbstractDatabase"/>.
+    /// Abstract class that defines the structure that any Database Class should use. This class implements <see cref="IAbstractDatabase"/>.
     /// </summary>
+    /// <typeparam name="M">A type that implements the ISQLModel interface and has a parameterless constructor.</typeparam>
     public abstract class AbstractDatabase<M> : IAbstractDatabase where M : ISQLModel, new()
     {
         protected event OnDatabaseConnectionOpen? OnConnectionOpenEvent;
@@ -18,19 +19,13 @@ namespace Backend.Database
         public virtual string DatabaseName { get; set; } = string.Empty;
         public ISQLModel Model { get; set; } = new M();
         public Type ModelType => Model.GetType();
-        public MasterSource MasterSource { get; protected set; } = [];
+        public MasterSource MasterSource { get; protected set; } = new MasterSource();
         #endregion
 
         #region Connection
         public abstract string ConnectionString();
         public abstract DbConnection CreateConnectionObject();
         public Task<DbConnection> CreateConnectionObjectAsync() => Task.FromResult(CreateConnectionObject());
-
-        /// <summary>
-        /// Use this method to check if the connection can be made.
-        /// <para><c>IMPORTANT:</c></para> the connection closes as soon as the method terminates.
-        /// </summary>
-        /// <returns>true if the connection was made.</returns>
         public bool AttemptConnection()
         {
             using (DbConnection connection = CreateConnectionObject())
@@ -46,12 +41,6 @@ namespace Backend.Database
                 }
             }
         }
-        
-        /// <summary>
-        /// Use this method to check if the connection can be made.
-        /// <para><c>IMPORTANT:</c></para> the connection closes as soon as the method terminates.
-        /// </summary>
-        /// <returns>true if the connection was made.</returns>
         public async Task<bool> AttemptConnectionAsync()
         {
             using (DbConnection connection = await CreateConnectionObjectAsync())
@@ -69,13 +58,20 @@ namespace Backend.Database
         }
         #endregion
 
+        /// <summary>
+        /// Sets the command text and parameters for the specified <see cref="DbCommand"/> object.
+        /// </summary>
+        /// <param name="cmd">The <see cref="DbCommand"/> to be configured.</param>
+        /// <param name="sql">The SQL query string to be assigned to the command.</param>
+        /// <param name="parameters">The list of <see cref="QueryParameter"/> objects to be added to the command. If null, parameters are set using the model.</param>
+        /// <exception cref="NoModelException">Thrown when the model is null.</exception>
         private void SetCommandWithParameters(DbCommand cmd, string sql, List<QueryParameter>? parameters)
         {
             if (Model == null) throw new NoModelException();
             cmd.CommandText = sql;
             if (parameters == null)
             {
-                parameters = [];
+                parameters = new List<QueryParameter>();
                 Model.SetParameters(parameters);
             }
 
@@ -247,7 +243,6 @@ namespace Backend.Database
                 }
             }
         }
-
         public async Task<bool> CrudAsync(CRUD crud, string? sql = null, List<QueryParameter>? parameters = null)
         {
             if (Model == null) return false;
@@ -303,6 +298,14 @@ namespace Backend.Database
                 }
             }
         }
+
+        /// <summary>
+        /// Retrieves the last inserted ID.
+        /// </summary>
+        /// <param name="connection">The database connection.</param>
+        /// <param name="transaction">The database transaction.</param>
+        /// <param name="sql">The SQL query string.</param>
+        /// <returns>The last inserted ID.</returns>
         private static long? RetrieveLastInsertedID(DbConnection connection, DbTransaction transaction, string sql)
         {
             using (DbCommand cmd = connection.CreateCommand())
@@ -312,10 +315,11 @@ namespace Backend.Database
                 return (long?)cmd.ExecuteScalar();
             }
         }
+
         /// <summary>
-        /// Override this method to return the correct statement to retrieve the last inserted id.
+        /// Returns the SQL statement to retrieve the last inserted ID.
         /// </summary>
-        /// <returns>A string representing the SQL Statement to retrieve the last inserted id.</returns>
+        /// <returns>A string representing the SQL statement to retrieve the last inserted ID.</returns>
         protected abstract string LastIDQry();
         #endregion
 
@@ -327,13 +331,15 @@ namespace Backend.Database
             if (string.IsNullOrEmpty(sql)) throw new Exception("No SQL Statement provided");
             return (long?)AggregateQuery(sql, parameters);
         }
+
         public async Task<long?> CountRecordsAsync(string? sql = null, List<QueryParameter>? parameters = null)
         {
             if (string.IsNullOrEmpty(sql) && Model != null)
                 sql = Model.RecordCountQry + ";";
             if (string.IsNullOrEmpty(sql)) throw new Exception("No SQL Statement provided");
-            return (long?) await AggregateQueryAsync(sql, parameters);
+            return (long?)await AggregateQueryAsync(sql, parameters);
         }
+
         public async Task<object?> AggregateQueryAsync(string sql, List<QueryParameter>? parameters = null)
         {
             object? value = null;
@@ -363,6 +369,7 @@ namespace Backend.Database
                 }
             }
         }
+
         public object? AggregateQuery(string sql, List<QueryParameter>? parameters = null)
         {
             object? value = null;
@@ -394,6 +401,11 @@ namespace Backend.Database
         }
         #endregion
 
+        /// <summary>
+        /// Sets the parameters for the specified <see cref="DbCommand"/> using the provided list of <see cref="QueryParameter"/>.
+        /// </summary>
+        /// <param name="cmd">The <see cref="DbCommand"/> to which the parameters will be added.</param>
+        /// <param name="parameters">The list of <see cref="QueryParameter"/> objects to be added to the command. If null, no parameters will be added.</param>
         private static void SetParameters(DbCommand cmd, List<QueryParameter>? parameters)
         {
             if (parameters == null) return;
@@ -409,8 +421,9 @@ namespace Backend.Database
 
         #region MasterSource
         /// <summary>
-        /// Update the <see cref="MasterSource"/> property.
+        /// Updates the <see cref="MasterSource"/> property.
         /// </summary>
+        /// <param name="crud">The CRUD operation performed.</param>
         private void UpdateMasterSource(CRUD crud)
         {
             if (MasterSource == null) return;
@@ -436,6 +449,9 @@ namespace Backend.Database
         }
         #endregion
 
+        /// <summary>
+        /// Disposes the resources used by the class.
+        /// </summary>
         public void Dispose()
         {
             OnConnectionOpenEvent = null;
@@ -443,5 +459,4 @@ namespace Backend.Database
             GC.SuppressFinalize(this);
         }
     }
-
 }

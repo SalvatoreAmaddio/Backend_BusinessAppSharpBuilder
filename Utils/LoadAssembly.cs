@@ -5,11 +5,10 @@ using System.Runtime.InteropServices;
 namespace Backend.Utils
 {
     /// <summary>
-    /// Represent an object holding a reference to an external Assembly. 
-    /// This class also uses the Win32 API to load functions out of assemblies.
+    /// Represents an object holding a reference to an external assembly.
+    /// This class also uses the Win32 API to load functions from assemblies.
     /// </summary>
-    /// <param name="path">The path were the assembly is located.</param>
-    public class LoadedAssembly(string path, string name, string architecture)
+    public class LoadedAssembly
     {
         #region Win32
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
@@ -23,77 +22,87 @@ namespace Backend.Utils
         #endregion
 
         /// <summary>
-        /// Gets the Loaded Assembly's Architecture.
+        /// Initializes a new instance of the <see cref="LoadedAssembly"/> class.
         /// </summary>
-        public string Architecture { get; } = architecture;
+        /// <param name="path">The path where the assembly is located.</param>
+        /// <param name="name">The name of the assembly.</param>
+        /// <param name="architecture">The architecture of the assembly.</param>
+        public LoadedAssembly(string path, string name, string architecture)
+        {
+            Path = path;
+            Name = name;
+            Architecture = architecture;
+        }
+
+        /// <summary>
+        /// Gets the architecture of the loaded assembly.
+        /// </summary>
+        public string Architecture { get; }
 
         /// <summary>
         /// Gets the name of the DLL.
         /// </summary>
-        public string Name { get; } = name;
+        public string Name { get; }
 
         /// <summary>
         /// Gets the path of the DLL.
         /// </summary>
-        public string Path { get; } = path;
+        public string Path { get; }
 
         /// <summary>
-        /// Gets the actual loaded Assembly
+        /// Gets the actual loaded assembly.
         /// </summary>
-        /// <returns>An Assembly</returns>
+        /// <returns>An <see cref="Assembly"/> object.</returns>
         public Assembly? Assembly { get; private set; }
 
         /// <summary>
-        /// Load the assembly.
+        /// Loads the assembly from the specified path.
         /// </summary>
-        /// <returns>true if the assembly could be loaded.</returns>
-        public bool Load() 
+        /// <returns>True if the assembly could be loaded; otherwise, false.</returns>
+        public bool Load()
         {
-            try 
+            try
             {
                 Assembly = Assembly.LoadFile(Path);
                 return true;
             }
-            catch 
+            catch
             {
                 return false;
             }
         }
 
         /// <summary>
-        /// Returns a function from the Assembly as the type of delegate specified by the Generic D. This method uses the Win32 API.
-        /// <para>Exceptions:</para>
-        /// <list type="bullet">
-        /// <item>
-        /// <description><see cref="DLLLoadFailure"/>: Thrown when the provided DLL path is incorrect or the DLL cannot be loaded.</description>
-        /// </item>
-        /// <item>
-        /// <description><see cref="ExtractionFunctionFailure"/>: Thrown when the specified function cannot be found in the DLL.</description>
-        /// </item>
-        /// </list>
+        /// Returns a function from the assembly as the specified delegate type. This method uses the Win32 API.
         /// </summary>
-        /// <typeparam name="D">The type of Delegate</typeparam>
-        /// <param name="functionName">The name of the function to load</param>
-        /// <returns>A delegate</returns>
+        /// <typeparam name="D">The type of delegate.</typeparam>
+        /// <param name="functionName">The name of the function to load.</param>
+        /// <returns>A delegate of type <typeparamref name="D"/>.</returns>
         /// <exception cref="DLLLoadFailure">Thrown when the provided DLL path is incorrect or the DLL cannot be loaded.</exception>
         /// <exception cref="ExtractionFunctionFailure">Thrown when the specified function cannot be found in the DLL.</exception>
-        public D LoadFunction<D>(string functionName) 
+        public D LoadFunction<D>(string functionName)
         {
             IntPtr hModule = LoadLibrary(Path);
             if (hModule == IntPtr.Zero)
                 throw new DLLLoadFailure(Name);
+
             IntPtr pFunc = GetProcAddress(hModule, functionName);
             if (pFunc == IntPtr.Zero)
             {
                 FreeLibrary(hModule);
                 throw new ExtractionFunctionFailure(functionName, Name);
             }
+
             D? delegateFunction = Marshal.GetDelegateForFunctionPointer<D>(pFunc);
             FreeLibrary(hModule);
             return delegateFunction;
         }
 
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
         public override string? ToString() => $"{Name}.dll - Architecture: {Architecture}";
-
     }
+
 }

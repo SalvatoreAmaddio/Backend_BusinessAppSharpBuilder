@@ -1,4 +1,5 @@
 ﻿using Backend.Database;
+using Backend.Enums;
 using Backend.Exceptions;
 using Backend.Model;
 using System.Runtime.InteropServices;
@@ -7,36 +8,40 @@ using XL = Microsoft.Office.Interop.Excel;
 namespace Backend.Office
 {
     /// <summary>
-    /// This class allows to easily access and manage the COM object for dealing with Excel's Worksheets.
+    /// Provides methods to easily access and manage Excel worksheets using COM objects.
     /// </summary>
     public class Worksheet : IDestroyable
     {
         XL._Worksheet wrksheet;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Worksheet"/> class.
+        /// </summary>
+        /// <param name="wrksheet">The COM object representing the worksheet.</param>
         public Worksheet(XL._Worksheet wrksheet) => this.wrksheet = wrksheet;
 
         /// <summary>
         /// Sets the name of the worksheet.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">The name to set for the worksheet.</param>
         public void SetName(string name) => this.wrksheet.Name = name;
 
         /// <summary>
         /// Prints a header with a default style. By default, the header will be at the first row.
         /// </summary>
-        /// <param name="headers">the headers</param>
-        /// <param name="row">the row index where the header will be printed at</param>
-        public void PrintHeader(IEnumerable<string> headers, int row = 1) => PrintHeader(headers.ToArray(),row);
+        /// <param name="headers">The headers to print.</param>
+        /// <param name="row">The row index where the header will be printed.</param>
+        public void PrintHeader(IEnumerable<string> headers, int row = 1) => PrintHeader(headers.ToArray(), row);
 
         /// <summary>
         /// Prints a header with a default style. By default, the header will be at the first row.
         /// </summary>
-        /// <param name="headers">the headers</param>
-        /// <param name="row">the row index where the header will be printed at</param>
+        /// <param name="headers">The headers to print.</param>
+        /// <param name="row">The row index where the header will be printed.</param>
         public void PrintHeader(string[] headers, int row = 1)
         {
             int column = 1;
-            foreach(string header in headers) 
+            foreach (string header in headers)
             {
                 SetValue(header, row, column);
                 column++;
@@ -52,11 +57,11 @@ namespace Backend.Office
         }
 
         /// <summary>
-        /// Prints a <see cref="IEnumerable{T}"/> in a tabular format. By default, the print starts at the second row.
+        /// Prints a collection of records in a tabular format. By default, the print starts at the second row.
         /// </summary>
-        /// <param name="records"></param>
-        /// <param name="row"></param>
-        /// <param name="use_pk_for_fk">set it to true if ForeignKey's objects' PK should be printed</param>
+        /// <param name="records">The records to print.</param>
+        /// <param name="use_pk_for_fk">Set to true if ForeignKey's objects' PK should be printed.</param>
+        /// <param name="row">The row index to start printing from (default is 2).</param>
         public void PrintData(IEnumerable<ISQLModel> records, bool use_pk_for_fk = false, int row = 2)
         {
             if (!records.Any()) return;
@@ -93,22 +98,21 @@ namespace Backend.Office
         }
 
         /// <summary>
-        /// Delete the worksheet.
+        /// Deletes the worksheet.
         /// </summary>
         public void Delete() => wrksheet.Delete();
 
         /// <summary>
         /// Sets the value of a given cell. The cell is represented by the row and column index. 
-        /// <para/>
-        /// For Example:
+        /// For example:
         /// <code>
-        ///   excel.Worksheet?.SetValue("ciao", 1, 1); //prints the word 'ciao' in cell A1.
+        ///   excel.Worksheet?.SetValue("ciao", 1, 1); // Prints the word 'ciao' in cell A1.
         /// </code>
         /// </summary>
-        /// <param name="value">the value to print</param>
-        /// <param name="row"></param>
-        /// <param name="col"></param>
-        /// <exception cref="ExcelIndexException"></exception>
+        /// <param name="value">The value to print.</param>
+        /// <param name="row">The row index of the cell.</param>
+        /// <param name="col">The column index of the cell.</param>
+        /// <exception cref="ExcelIndexException">Thrown when the row or column index is less than or equal to zero.</exception>
         public void SetValue(object? value, int row = 1, int col = 1)
         {
             if (row <= 0 || col <= 0) throw new ExcelIndexException();
@@ -116,69 +120,74 @@ namespace Backend.Office
         }
 
         /// <summary>
-        /// Sets the value of a given cell. The cell is represented by the row and column index. 
-        /// <para/>
-        /// For Example:
+        /// Sets the value of a given cell. The cell is represented by the row and column label. 
+        /// For example:
         /// <code>
-        ///   excel.Worksheet?.SetValue("ciao", 1, "A"); //prints the word 'ciao' in cell A1.
+        ///   excel.Worksheet?.SetValue("ciao", 1, "A"); // Prints the word 'ciao' in cell A1.
         /// </code>
         /// </summary>
-        /// <param name="value">the value to print</param>
-        /// <param name="row">the row index</param>
-        /// <param name="col">the column label</param>
-        /// <exception cref="ExcelIndexException"></exception>
-        public void SetValue(object? value, int row=1, string col="A")
+        /// <param name="value">The value to print.</param>
+        /// <param name="row">The row index of the cell.</param>
+        /// <param name="col">The column label of the cell.</param>
+        /// <exception cref="ExcelIndexException">Thrown when the row index is less than or equal to zero.</exception>
+        public void SetValue(object? value, int row = 1, string col = "A")
         {
             if (row <= 0) throw new ExcelIndexException();
             this.wrksheet.Cells[row, col] = (value == null) ? string.Empty : value;
         }
 
         /// <summary>
-        /// Gets a Range based on indexes. For Example:
+        /// Gets a range based on indexes. For example:
         /// <code>
-        ///     Range range = GetRange(1, 1, 2, 1); //gets the Range from A1 to B1.
+        ///     Range range = GetRange(1, 1, 2, 1); // Gets the range from A1 to B1.
         /// </code>
         /// </summary>
-        /// <param name="col1"></param>
-        /// <param name="row1"></param>
-        /// <param name="col2"></param>
-        /// <param name="row2"></param>
-        /// <returns>A Range</returns>
-        /// <exception cref="ExcelIndexException"></exception>
+        /// <param name="col1">The starting column index.</param>
+        /// <param name="row1">The starting row index.</param>
+        /// <param name="col2">The ending column index.</param>
+        /// <param name="row2">The ending row index.</param>
+        /// <returns>A <see cref="Range"/> representing the specified range of cells.</returns>
+        /// <exception cref="ExcelIndexException">Thrown when any of the provided indexes are less than or equal to zero.</exception>
         public Range GetRange(int col1 = 1, int row1 = 1, int col2 = 1, int row2 = 1)
         {
-            if (row1 <= 0 || col1<= 0  || col2 <= 0 || row2 <= 0) throw new ExcelIndexException();
-            return new (wrksheet, col1, row1, col2, row2);
+            if (row1 <= 0 || col1 <= 0 || col2 <= 0 || row2 <= 0) throw new ExcelIndexException();
+            return new Range(wrksheet, col1, row1, col2, row2);
         }
 
         /// <summary>
-        /// Gets a Range based on cells' names. For Example:
+        /// Gets a range based on cell names. For example:
         /// <code>
-        ///     Range range = GetRange("A1", "H1"); //gets the Range from A1 to H1.
+        ///     Range range = GetRange("A1", "H1"); // Gets the range from A1 to H1.
         /// </code>
         /// </summary>
-        /// <param name="cell1"></param>
-        /// <param name="cell2"></param>
-        /// <returns>A Range</returns>
-        public Range GetRange(string cell1, string cell2) => new(wrksheet, cell1, cell2);
+        /// <param name="cell1">The starting cell name.</param>
+        /// <param name="cell2">The ending cell name.</param>
+        /// <returns>A <see cref="Range"/> representing the specified range of cells.</returns>
+        public Range GetRange(string cell1, string cell2) => new Range(wrksheet, cell1, cell2);
 
         /// <summary>
-        /// Gets a Range object which selects the entire column based on column's letter. For Example:
+        /// Gets a range object which selects the entire column based on the column's letter. For example:
         /// <code>
-        ///     Range range = GetRange("A"); //gets the entire column A.
+        ///     Range range = GetRange("A"); // Gets the entire column A.
         /// </code>
         /// </summary>
-        public Range GetRange(string columnLetter) => new(wrksheet, columnLetter);
+        /// <param name="columnLetter">The letter of the column to select.</param>
+        /// <returns>A <see cref="Range"/> representing the specified column.</returns>
+        public Range GetRange(string columnLetter) => new Range(wrksheet, columnLetter);
 
         /// <summary>
-        /// Gets a Range object which selects the entire column based on column's index. For Example:
+        /// Gets a range object which selects the entire column based on the column's index. For example:
         /// <code>
-        ///     Range range = GetRange(1); //gets the entire column A.
+        ///     Range range = GetRange(1); // Gets the entire column A.
         /// </code>
         /// </summary>
-        public Range GetRange(int columnIndex) => new(wrksheet, columnIndex);
+        /// <param name="columnIndex">The index of the column to select.</param>
+        /// <returns>A <see cref="Range"/> representing the specified column.</returns>
+        public Range GetRange(int columnIndex) => new Range(wrksheet, columnIndex);
 
+        /// <summary>
+        /// Releases the COM object for the worksheet.
+        /// </summary>
         public void Destroy() => Marshal.ReleaseComObject(this.wrksheet);
-
     }
 }
