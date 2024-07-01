@@ -120,7 +120,7 @@ namespace Backend.Model
             Clauses.Add(this);
             _model = model;
             TableName = model.GetTableName();
-            TableKey = model?.GetPrimaryKey()?.Name ?? throw new NullReferenceException("Primary key is null");
+            TableKey = model?.GetPrimaryKey()?.Name ?? throw new NullReferenceException($"PK Attribute missing from {_model.GetType().Name}");
         }
 
         protected void TransferClauses(ref AbstractClause clause) => this.Clauses = clause.Clauses;

@@ -12,6 +12,13 @@ namespace Backend.Utils
     public class Sys
     {
         /// <summary>
+        /// Checks if a number is even.
+        /// </summary>
+        /// <param name="num">the number to check</param>
+        /// <returns>True if it is even, otherwise false.</returns>
+        public static bool IsEven(int num) => num % 2 == 0;
+
+        /// <summary>
         /// Creates a folder at the specified path if it does not already exist.
         /// </summary>
         /// <param name="folderPath">The path of the folder to create.</param>

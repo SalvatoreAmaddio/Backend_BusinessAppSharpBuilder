@@ -39,7 +39,7 @@
         /// Adds a condition to the WHERE clause that the primary key equals a specified parameter.
         /// </summary>
         /// <returns>The current instance of <see cref="WhereClause"/> with the added condition.</returns>
-        public WhereClause This() => this.EqualsTo(TableKey, $"@{TableKey}");
+        public WhereClause This(string value = "") => this.EqualsTo(TableKey, $"@{(string.IsNullOrEmpty(value) ? TableKey : value)}");
 
         /// <summary>
         /// Adds a BETWEEN condition to the WHERE clause.
