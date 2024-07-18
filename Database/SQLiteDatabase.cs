@@ -26,11 +26,11 @@ namespace Backend.Database
         /// Gets or sets the path to the database, including the name.
         /// <para><c>For Example:</c></para>
         /// <code>
-        /// SQLiteDatabase db = new SQLiteDatabase();
-        /// db.DatabaseName = "Data/mydb.db";
+        /// SQLiteDatabase&lt;Student> db = new();
+        /// db.DatabaseName = "Data\mydb.db";
         /// </code>
         /// </summary>
-        public override string DatabaseName { get; set; } = "Data/mydb.db";
+        public override string DatabaseName { get; set; } = "mydb.db";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SQLiteDatabase{M}"/> class.

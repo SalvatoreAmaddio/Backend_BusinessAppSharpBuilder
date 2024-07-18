@@ -1,4 +1,5 @@
 ﻿using Backend.Model;
+using Backend.Utils;
 
 namespace Backend.Database
 {
@@ -17,6 +18,8 @@ namespace Backend.Database
         /// List of databases managed by the <see cref="DatabaseManager"/>.
         /// </summary>
         private readonly List<IAbstractDatabase> Databases;
+        public static string DatabasePath { get; set; } = string.Empty;
+        public static string DatabaseName { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets the number of <see cref="IAbstractDatabase"/> instances.
@@ -42,7 +45,11 @@ namespace Backend.Database
         /// Adds a database object.
         /// </summary>
         /// <param name="db">An object implementing <see cref="IAbstractDatabase"/>.</param>
-        public static void Add(IAbstractDatabase db) => lazyInstance.Value.Databases.Add(db);
+        public static void Add(IAbstractDatabase db) 
+        {
+            db.DatabaseName = DatabaseName;
+            lazyInstance.Value.Databases.Add(db);
+        }
 
         /// <summary>
         /// Removes a database object and disposes of it.
@@ -52,6 +59,30 @@ namespace Backend.Database
         {
             lazyInstance.Value.Databases.Remove(db);
             db.Dispose();
+        }
+
+        /// <summary>
+        /// Copies the database file from the project's Data folder to the AppData folder
+        /// specific to the application. If the destination directory does not exist, it
+        /// creates the directory before copying the file.
+        /// </summary>
+        /// <remarks>
+        /// This method is intended to ensure that the database file is placed in a writable
+        /// location (AppData) for the current user, avoiding permission issues associated
+        /// with protected directories like Program Files.
+        /// </remarks>
+        public static void LoadInApplicationData()
+        {
+            string sourcePath = Path.Combine(Sys.AppPath(), "Data", DatabaseName);
+            string destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Sys.AppName, DatabaseName);
+
+            string? destDir = Path.GetDirectoryName(destPath);
+            if (!Directory.Exists(destDir))
+                Directory.CreateDirectory(destDir!);
+
+            File.Copy(sourcePath, destPath, true);
+
+            DatabaseName = destPath;
         }
 
         /// <summary>
