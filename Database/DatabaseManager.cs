@@ -18,7 +18,6 @@ namespace Backend.Database
         /// List of databases managed by the <see cref="DatabaseManager"/>.
         /// </summary>
         private readonly List<IAbstractDatabase> Databases;
-        public static string DatabasePath { get; set; } = string.Empty;
         public static string DatabaseName { get; set; } = string.Empty; //"data\mydb.db"
 
         /// <summary>
@@ -80,7 +79,8 @@ namespace Backend.Database
             if (!Directory.Exists(destDir))
                 Directory.CreateDirectory(destDir!);
 
-            File.Copy(sourcePath, destPath, true);
+            if (!File.Exists(destPath))
+                File.Copy(sourcePath, destPath);
 
             DatabaseName = destPath;
         }
