@@ -19,7 +19,7 @@ namespace Backend.Database
         /// </summary>
         private readonly List<IAbstractDatabase> Databases;
         public static string DatabasePath { get; set; } = string.Empty;
-        public static string DatabaseName { get; set; } = string.Empty;
+        public static string DatabaseName { get; set; } = string.Empty; //"data\mydb.db"
 
         /// <summary>
         /// Gets the number of <see cref="IAbstractDatabase"/> instances.

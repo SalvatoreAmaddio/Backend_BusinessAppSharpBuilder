@@ -30,7 +30,7 @@ namespace Backend.Database
         /// db.DatabaseName = "Data\mydb.db";
         /// </code>
         /// </summary>
-        public override string DatabaseName { get; set; } = "mydb.db";
+        public override string DatabaseName { get; set; } = string.Empty;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SQLiteDatabase{M}"/> class.
