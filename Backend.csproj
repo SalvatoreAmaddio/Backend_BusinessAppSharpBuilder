@@ -18,7 +18,7 @@
     <PackageId>BackendBusinessAppSharpBuilder</PackageId>
     <RepositoryUrl>https://github.com/SalvatoreAmaddio/Backend_BusinessAppSharpBuilder</RepositoryUrl>
 	<PackageLicenseExpression>EPL-2.0</PackageLicenseExpression>
-	<VersionPrefix>1.0.31</VersionPrefix>
+	<VersionPrefix>1.0.32</VersionPrefix>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
