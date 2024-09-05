@@ -138,6 +138,8 @@ namespace Backend.Controller
         /// Occurs before record navigation.
         /// </summary>
         event BeforeRecordNavigationEventHandler? BeforeRecordNavigation;
+
+        bool CheckIsDirtyOnClose { get; set; }
     }
 
 }

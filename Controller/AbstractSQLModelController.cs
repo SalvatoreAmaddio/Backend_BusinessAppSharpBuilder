@@ -20,6 +20,7 @@ namespace Backend.Controller
         #endregion
 
         #region Properties
+        public bool CheckIsDirtyOnClose { get; set; } = true;
         public IAbstractDatabase Db { get; protected set; } = null!;
         public IDataSource Source => DataSource;
         public virtual string Records { get; protected set; } = string.Empty;

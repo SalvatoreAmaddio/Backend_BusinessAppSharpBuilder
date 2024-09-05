@@ -84,7 +84,7 @@ namespace Backend.Database
             if (Model == null) throw new NoModelException();
 
             if (string.IsNullOrEmpty(sql))
-                sql = Model.SelectQry;
+                sql = Model.SelectQry.Trim();
 
             sql += ";";
             using (DbConnection connection = await CreateConnectionObjectAsync())
@@ -96,8 +96,11 @@ namespace Backend.Database
                     SetCommandWithParameters(cmd, sql, parameters);
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
-                        while (await reader.ReadAsync())
-                            yield return Model.Read(reader);
+                        if (reader.HasRows)
+                        {
+                            while (await reader.ReadAsync())
+                                yield return Model.Read(reader);
+                        }
                     }
                 }
             }
@@ -108,7 +111,7 @@ namespace Backend.Database
             if (Model == null) throw new NoModelException();
 
             if (string.IsNullOrEmpty(sql))
-                sql = Model.SelectQry;
+                sql = Model.SelectQry.Trim();
             sql += ";";
             using (DbConnection connection = CreateConnectionObject())
             {
@@ -122,8 +125,11 @@ namespace Backend.Database
                         SetCommandWithParameters(cmd, sql, parameters);
                         using (DbDataReader reader = cmd.ExecuteReader())
                         {
-                            while (reader.Read())
-                                yield return Model.Read(reader);
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                    yield return Model.Read(reader);
+                            }
                         }
                     }
                     transaction.Commit();
