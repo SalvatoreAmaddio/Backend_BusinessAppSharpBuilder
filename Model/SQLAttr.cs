@@ -39,7 +39,7 @@
         /// Returns the name of the derived attribute class.
         /// </summary>
         /// <returns>The name of the derived attribute class.</returns>
-        public override string ToString() => HasAlternativeName ? GetType().Name : _name;
+        public override string ToString() => HasAlternativeName ? _name : GetType().Name;
     }
 
     /// <summary>
