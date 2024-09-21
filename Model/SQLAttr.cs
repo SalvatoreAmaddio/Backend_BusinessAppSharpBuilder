@@ -7,7 +7,7 @@
     [AttributeUsage(AttributeTargets.Class)]
     public class Table : Attribute
     {
-        private readonly string _name;
+        public readonly string _name;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Table"/> class with the specified table name.
@@ -31,11 +31,15 @@
     [AttributeUsage(AttributeTargets.Property)]
     public abstract class AbstractField : Attribute
     {
+        private readonly string _name = string.Empty;
+        public bool HasAlternativeName => string.IsNullOrEmpty(_name);
+        public AbstractField() { }
+        public AbstractField(string name) => _name = name;
         /// <summary>
         /// Returns the name of the derived attribute class.
         /// </summary>
         /// <returns>The name of the derived attribute class.</returns>
-        public override string ToString() => GetType().Name;
+        public override string ToString() => HasAlternativeName ? GetType().Name : _name;
     }
 
     /// <summary>
@@ -44,6 +48,8 @@
     /// </summary>
     public class Field : AbstractField
     {
+        public Field() { }
+        public Field(string name) : base(name) { }
         // No additional functionality required for the Field attribute
     }
 
@@ -55,7 +61,8 @@
     /// </summary>
     public class PK : AbstractField
     {
-        // No additional functionality required for the PK attribute
+        public PK() { }
+        public PK(string name) : base(name) { }
     }
 
     /// <summary>
@@ -64,7 +71,8 @@
     /// </summary>
     public class FK : AbstractField
     {
-        // No additional functionality required for the FK attribute
+        public FK() { }
+        public FK(string name) : base(name) { }
     }
 
 }

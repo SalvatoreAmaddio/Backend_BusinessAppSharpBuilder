@@ -86,7 +86,7 @@ namespace Backend.Model
             Property = property;
             Model = model;
             FieldType = ReadFieldType(field.ToString());
-            Name = property.Name;
+            Name = field.HasAlternativeName ? field.ToString() : property.Name;
         }
 
         /// <summary>
@@ -166,12 +166,23 @@ namespace Backend.Model
         /// <exception cref="Exception">Thrown if the primary key associated with the foreign key field is not found.</exception>
         public FKField(AbstractField field, PropertyInfo property, ISQLModel model) : base(field, property, model)
         {
-            ISQLModel? fk_model = (ISQLModel?)GetValue();
-            fk_model ??= (ISQLModel)Activator.CreateInstance(property.PropertyType)!;
             ClassName = property.PropertyType.Name;
             ClassType = property.PropertyType;
-            PK = fk_model.GetPrimaryKey() ?? throw new Exception("No primary key found in the foreign key model.");
-            Name = PK.Name;
+            ISQLModel? fk_model = (ISQLModel?)GetValue();
+
+            try 
+            {
+                fk_model ??= (ISQLModel)Activator.CreateInstance(property.PropertyType)!;
+                PK = fk_model.GetPrimaryKey() ?? throw new Exception("No primary key found in the foreign key model.");
+                Name = PK.Name;
+            }
+            catch 
+            { 
+            
+            }
+
+            if (field.HasAlternativeName)
+                Name = field.ToString();
         }
     }
 }

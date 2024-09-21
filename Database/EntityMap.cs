@@ -8,7 +8,7 @@ namespace Backend.Database
     /// </summary>
     public class EntityMap : IDisposable
     {
-        private readonly List<EntityTree> _children = new List<EntityTree>();
+        private readonly List<EntityTree> _children = [];
 
         /// <summary>
         /// Adds a child <see cref="EntityTree"/> to the entity map.
@@ -90,9 +90,9 @@ namespace Backend.Database
             {
                 _node = (ISQLModel?)Activator.CreateInstance(_type);
             }
-            catch
+            catch(Exception ex)
             {
-                throw new Exception("type must be an instance of ISQLModel");
+                throw new Exception($"{ex.Message} type must be an instance of ISQLModel, {_type}");
             }
 
             AddChildren();

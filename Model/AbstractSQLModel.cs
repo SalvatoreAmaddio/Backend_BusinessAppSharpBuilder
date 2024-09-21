@@ -12,7 +12,7 @@ namespace Backend.Model
     /// </summary>
     public abstract class AbstractSQLModel : ISQLModel
     {
-        private readonly List<SimpleTableField> _emptyFields = new List<SimpleTableField>();
+        private readonly List<SimpleTableField> _emptyFields = [];
 
         #region Properties
         public string SelectQry { get; set; } = string.Empty;
