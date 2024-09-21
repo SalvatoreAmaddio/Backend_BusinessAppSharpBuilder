@@ -148,7 +148,7 @@ namespace Backend.Model
             }
         }
 
-        public bool IsNewRecord() => (long?)GetPrimaryKey()?.GetValue() == 0;
+        public virtual bool IsNewRecord() => (long?)GetPrimaryKey()?.GetValue() == 0;
 
         /// <summary>
         /// Determines whether the specified object is equal to the current object.
