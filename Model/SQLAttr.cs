@@ -7,7 +7,7 @@
     [AttributeUsage(AttributeTargets.Class)]
     public class Table : Attribute
     {
-        public readonly string _name;
+        private readonly string _name;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Table"/> class with the specified table name.
@@ -32,7 +32,7 @@
     public abstract class AbstractField : Attribute
     {
         private readonly string _name = string.Empty;
-        public bool HasAlternativeName => string.IsNullOrEmpty(_name);
+        public bool HasAlternativeName => !string.IsNullOrEmpty(_name);
         public AbstractField() { }
         public AbstractField(string name) => _name = name;
         /// <summary>
