@@ -3,6 +3,7 @@ using Backend.Model;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Backend.Enums;
+using System.Text.Json;
 
 namespace Backend.Utils
 {
@@ -215,6 +216,18 @@ namespace Backend.Utils
             LoadedAssembly assembly = new(tempFile, dllName, IntPtr.Size == 8 ? "x64" : "x86");
             assembly.Load();
             LoadedDLL.Add(assembly);
+        }
+
+        /// <summary>
+        /// Returns an instance of an object implementing <see cref="ISQLModel"/> by reading a JSON File.
+        /// </summary>
+        /// <typeparam name="M">The generic type representing the class implementing <see cref="ISQLModel"/></typeparam>
+        /// <param name="filePath">The path to the JSON File</param>
+        /// <returns>An object implementing <see cref="ISQLModel"/></returns>
+        public static M? CreateFromJSON<M>(string filePath) where M : ISQLModel, new()
+        {
+            string json = File.ReadAllText(filePath);
+            return JsonSerializer.Deserialize<M>(json);
         }
     }
 
