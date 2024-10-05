@@ -229,17 +229,5 @@ namespace Backend.Utils
             string json = File.ReadAllText(filePath);
             return JsonSerializer.Deserialize<M>(json);
         }
-
-        /// <summary>
-        /// Returns an instance of an object by reading a JSON File.
-        /// </summary>
-        /// <typeparam name="M">The generic type representing the class implementing <see cref="ISQLModel"/></typeparam>
-        /// <param name="filePath">The path to the JSON File</param>
-        /// <returns>An object</returns>
-        public static IEnumerable<M?>? CreateListFromJSON<M>(string filePath) where M : new()
-        {
-            string json = File.ReadAllText(filePath);
-            return JsonSerializer.Deserialize<List<M>>(json);
-        }
     }
 }
