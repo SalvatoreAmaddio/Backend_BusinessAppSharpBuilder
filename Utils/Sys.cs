@@ -230,5 +230,4 @@ namespace Backend.Utils
             return JsonSerializer.Deserialize<M>(json);
         }
     }
-
 }
