@@ -15,7 +15,7 @@
         public static string FirstLetterCapital(this string str)
         {
             if (str == null) throw new ArgumentNullException(nameof(str), "Input string cannot be null.");
-            if (str.Length == 0) throw new ArgumentException("Input string cannot be empty.", nameof(str));
+            if (str.Length == 0) return string.Empty;
 
             char firstLetter = str[0];
             string restOf = str.Substring(1);
