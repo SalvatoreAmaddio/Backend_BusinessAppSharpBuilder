@@ -198,5 +198,4 @@ namespace Backend.Utils
             Is.Logout();
         }
     }
-
 }
